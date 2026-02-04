@@ -2442,12 +2442,10 @@ flomo是可以导出自己的笔记的，一开始便有“开发一个分析系
                             goToArticle(article.week, { openSidebar: true });
                           }}
                         >
-                          <img src={article.image} alt={article.title || ''} />
-                          <div className="gallery-card-body">
-                            <div className="gallery-week">Week {week}</div>
-                            <div className="gallery-card-title">{article.title || ''}</div>
-                            <div className="gallery-card-sub">{data.subtitle || ''}</div>
-                          <div className="gallery-card-link">打开正文 →</div>
+                        <img src={article.image} alt={article.title || ''} />
+                        <div className="gallery-card-body">
+                          <div className="gallery-week">Week {week}</div>
+                          <div className="gallery-card-title">{article.title || ''}</div>
                         </div>
                       </div>
                     );

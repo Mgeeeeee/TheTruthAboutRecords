@@ -287,15 +287,40 @@
       letter-spacing: 0.4px;
       cursor: pointer;
       box-shadow: none;
-      transition: all 0.2s ease;
+      position: relative;
+      z-index: 0;
+      transition: color 0.2s ease;
       -webkit-tap-highlight-color: transparent;
     }
 
-    .tab-center:hover {
+    /* Fill overlay (covers the 1px border of .mobile-tabbar to avoid visible gaps) */
+    .tab-center::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 999px;
       background: rgba(217, 119, 87, 0.18);
+      opacity: 0;
+      transform: translateZ(0);
+      transition: opacity 0.18s ease;
+      z-index: 0;
+    }
+
+    .tab-center-label {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tab-center:hover {
+      /* desktop hover */
+      color: var(--color-orange);
     }
     .tab-center:active {
-      background: rgba(217, 119, 87, 0.18);
+      color: var(--color-orange);
+    }
+    .tab-center:hover::before,
+    .tab-center:active::before {
+      opacity: 1;
     }
 
     /* Mobile bottom sheet (week picker) */
@@ -1238,7 +1263,7 @@
                       else setSidebarOpen(true);
                     }}
                   >
-                    第 {String(currentArticle.week).padStart(2, '0')} 周 · 目录
+                    <span className="tab-center-label">第 {String(currentArticle.week).padStart(2, '0')} 周 · 目录</span>
                   </button>
                 </div>
 

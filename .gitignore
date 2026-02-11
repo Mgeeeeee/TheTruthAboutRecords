@@ -1,1 +1,12 @@
 .DS_Store
+
+# Craft Agent / Codex workspace artifacts
+.claude-plugin/
+sessions/
+skills/
+sources/
+labels/
+statuses/
+config.json
+views.json
+events.jsonl

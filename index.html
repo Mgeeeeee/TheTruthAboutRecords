@@ -318,6 +318,11 @@
       justify-content: center;
     }
 
+    .top-catalog-item.edge-right {
+      margin-left: auto;
+    }
+
+
     .top-catalog-hover-index {
       position: absolute;
       top: calc(100% + 6px);
@@ -1788,10 +1793,12 @@
                           const isCurrent = currentArticle?.week === item.week;
                           const showTitle = isCurrent && !hoveredTopWeek;
                           const showHoverIndex = hoveredTopWeek === item.week;
+                          const isFirst = index === 0;
+                          const isLast = index === allWeeks.length - 1;
                           return (
                             <div
                               key={item.week}
-                              className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''}`}
+                              className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''} ${isFirst ? 'edge-left' : ''} ${isLast ? 'edge-right' : ''}`}
                             >
                               <button
                                 data-week={item.week}

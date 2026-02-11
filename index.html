@@ -309,21 +309,25 @@
       overflow: visible;
     }
 
-    .top-catalog-hover-index {
+    .top-catalog-bottom-title {
       position: absolute;
       top: calc(100% + 6px);
       left: 50%;
       transform: translateX(-50%) translateY(-2px) scale(0.98);
       font-family: var(--font-heading);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
-      line-height: 1;
-      letter-spacing: 1px;
-      color: rgba(var(--theme-accent-rgb), 0.96);
-      background: linear-gradient(180deg, rgba(255, 247, 242, 0.96), rgba(255, 241, 232, 0.92));
+      line-height: 1.2;
+      letter-spacing: 0.4px;
+      color: rgba(var(--theme-accent-rgb), 0.94);
+      background: linear-gradient(180deg, rgba(255, 247, 242, 0.98), rgba(255, 241, 232, 0.95));
       border: 1px solid rgba(var(--theme-accent-rgb), 0.32);
       border-radius: 999px;
-      padding: 4px 8px;
+      padding: 4px 10px;
+      max-width: calc(100% - 8px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       box-shadow:
         0 4px 10px rgba(20, 20, 19, 0.08),
         0 0 0 1px rgba(var(--theme-accent-rgb), 0.08) inset;
@@ -331,10 +335,9 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s var(--ease-snappy), transform 0.2s var(--ease-snappy);
-      white-space: nowrap;
     }
 
-    .top-catalog-item.show-hover-index .top-catalog-hover-index {
+    .top-catalog-item.show-bottom-title .top-catalog-bottom-title {
       opacity: 1;
       transform: translateX(-50%) translateY(0) scale(1);
     }
@@ -1845,12 +1848,12 @@
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
                           const isFocused = focusedWeek === item.week;
-                          const showTitle = isFocused;
-                          const showHoverIndex = hoveredTopWeek === item.week;
+                          const showTitle = isFocused && !isCurrent;
+                          const showBottomTitle = isCurrent;
                           return (
                             <div
                               key={item.week}
-                              className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''}`}
+                              className={`top-catalog-item ${showBottomTitle ? 'show-bottom-title' : ''}`}
                               style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, zIndex: metrics.zIndex }}
                             >
                               <button
@@ -1883,7 +1886,7 @@
                                   </div>
                                 </div>
                               </button>
-                              <div className="top-catalog-hover-index">{String(item.week).padStart(2, '0')}</div>
+                              <div className="top-catalog-bottom-title">{`WEEK ${String(item.week).padStart(2, '0')}｜${item.pending ? '静待花开' : (item.title || '')}`}</div>
                             </div>
                           );
                         })}

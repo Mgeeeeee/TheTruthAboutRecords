@@ -479,12 +479,22 @@
     }
 
     .gallery-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(217, 119, 87, 0.34);
+      background: rgba(217, 119, 87, 0.10);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
       font-family: var(--font-heading);
       font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1.6px;
+      letter-spacing: 0.6px;
       color: var(--color-orange);
       font-weight: 600;
+      text-transform: none;
     }
 
     .gallery-title {
@@ -1361,7 +1371,7 @@
               {viewMode === 'gallery' ? (
                 <section>
                   <div className="gallery-header">
-                    <div className="gallery-badge">flomo｜领航员计划</div>
+                    <div className="gallery-badge">flomo丨领航员计划</div>
                     <h1 className="gallery-title">记录的真相</h1>
                   </div>
 

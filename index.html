@@ -1721,11 +1721,13 @@
         const isFocus = index === focusIndex;
         const distance = Math.abs(index - focusIndex);
         const focusHeight = Math.round(focusWidth / cardAspectRatio);
-        const minCollapsedHeight = 54;
-        const collapsedBaseHeight = Math.max(minCollapsedHeight, Math.min(84, Math.round(collapsedWidth * 7.6)));
-        const height = isFocus
-          ? focusHeight
-          : Math.max(minCollapsedHeight, Math.round(collapsedBaseHeight - distance * 0.9));
+        const minCollapsedHeight = 56;
+        const nearHeight = Math.max(78, Math.min(focusHeight - 12, Math.round(focusHeight * 0.82)));
+        const farHeight = Math.max(minCollapsedHeight, Math.min(70, Math.round(collapsedWidth * 7.2)));
+        const decay = Math.max(0, distance - 1);
+        const eased = Math.exp(-decay * 0.34);
+        const transitionHeight = Math.round(farHeight + (nearHeight - farHeight) * eased);
+        const height = isFocus ? focusHeight : Math.max(minCollapsedHeight, transitionHeight);
 
         return {
           width: isFocus ? focusWidth : collapsedWidth,

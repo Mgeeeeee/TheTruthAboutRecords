@@ -193,6 +193,14 @@
       flex-direction: column;
       gap: 10px;
       padding-right: 2px;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* Legacy Edge/IE */
+    }
+
+    .article-list.image-catalog::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
     }
 
     .article-item {

@@ -245,6 +245,82 @@
       pointer-events: none;
     }
 
+    .top-image-preview {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 20, 19, 0.56);
+      backdrop-filter: blur(4px);
+      padding: 20px;
+      animation: fadeInPreview 0.18s ease;
+    }
+
+    .top-image-preview-panel {
+      position: relative;
+      width: min(92vw, 1040px);
+      max-height: 90vh;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(20, 20, 19, 0.12);
+      border-radius: 16px;
+      box-shadow: 0 22px 56px rgba(20, 20, 19, 0.24);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: riseInPreview 0.22s var(--ease-smooth);
+    }
+
+    .top-image-preview-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: 1px solid rgba(20, 20, 19, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: rgba(20, 20, 19, 0.8);
+      cursor: pointer;
+    }
+
+    .top-image-preview-close:hover {
+      border-color: rgba(var(--theme-accent-rgb), 0.45);
+      color: rgba(var(--theme-accent-rgb), 0.95);
+    }
+
+    .top-image-preview-image {
+      width: 100%;
+      max-height: calc(90vh - 84px);
+      object-fit: contain;
+      object-position: center center;
+      border-radius: 12px;
+      background: rgba(236, 235, 228, 0.52);
+      display: block;
+    }
+
+    .top-image-preview-caption {
+      text-align: center;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(20, 20, 19, 0.86);
+      letter-spacing: 0.35px;
+      margin-top: 2px;
+    }
+
+    @keyframes fadeInPreview {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes riseInPreview {
+      from { opacity: 0; transform: translateY(8px) scale(0.988); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
     /* Main content */
     .main-content {
       flex: 1;
@@ -864,7 +940,9 @@
       .mobile-sheet-overlay,
       .mobile-sheet,
       .top-catalog-card,
-      .top-catalog-overlay {
+      .top-catalog-overlay,
+      .top-image-preview,
+      .top-image-preview-panel {
         transition: none !important;
         animation: none !important;
       }
@@ -893,6 +971,7 @@
       const [loadError, setLoadError] = useState(null);
       const [hoveredTopWeek, setHoveredTopWeek] = useState(null);
       const [topCatalogWidth, setTopCatalogWidth] = useState(0);
+      const [previewCard, setPreviewCard] = useState(null);
       const lockedScrollYRef = useRef(0);
       const topCatalogRef = useRef(null);
 
@@ -1059,6 +1138,15 @@
         return () => window.removeEventListener('resize', updateWidth);
       }, [viewMode, currentArticle?.week, data?.total]);
 
+      useEffect(() => {
+        if (!previewCard) return;
+        const onKeyDown = (e) => {
+          if (e.key === 'Escape') setPreviewCard(null);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+      }, [previewCard]);
+
       const getThumbSrc = (src) => {
         if (!src || typeof src !== 'string') return src;
         if (!src.startsWith('./assets/')) return src;
@@ -1160,6 +1248,7 @@
       const goToArticle = (week) => {
         const article = data.articles.find(a => a.week === week);
         if (article) {
+          setPreviewCard(null);
           setCurrentArticle(article);
           setViewMode('article');
           if (isMobile()) setShowMobileTab(true);
@@ -1170,6 +1259,7 @@
         setCurrentArticle(null);
         setViewMode('gallery');
         setHoveredTopWeek(null);
+        setPreviewCard(null);
         setMobileMenuOpen(false);
         setShowMobileTab(true);
       };
@@ -1435,6 +1525,11 @@
                                 onClick={() => {
                                   if (item.pending) return;
                                   setHoveredTopWeek(item.week);
+                                  if (currentArticle?.week === item.week) {
+                                    setPreviewCard(item);
+                                    return;
+                                  }
+                                  setPreviewCard(null);
                                   goToArticle(item.week);
                                 }}
                               >
@@ -1556,6 +1651,16 @@
                   </div>
                 )}
               </>
+            )}
+
+            {previewCard && (
+              <div className="top-image-preview" onClick={() => setPreviewCard(null)}>
+                <div className="top-image-preview-panel" onClick={(e) => e.stopPropagation()}>
+                  <button className="top-image-preview-close" onClick={() => setPreviewCard(null)}>关闭</button>
+                  <img className="top-image-preview-image" src={previewCard.image} alt={previewCard.title || ''} decoding="async" />
+                  <div className="top-image-preview-caption">{`WEEK ${String(previewCard.week).padStart(2, '0')}｜${previewCard.title || ''}`}</div>
+                </div>
+              </div>
             )}
           </main>
         </div>

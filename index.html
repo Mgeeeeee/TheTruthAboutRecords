@@ -238,19 +238,20 @@
 
     .article-thumb-item {
       flex-shrink: 0;
-      position: relative;
       height: 12px;
-      border-radius: 999px;
+      position: relative;
+      border-radius: 6px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
-      overflow: visible;
+      overflow: hidden;
       cursor: pointer;
-      transition: border-radius 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-      will-change: transform;
+      transition: height 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      contain: layout paint;
     }
 
     .article-thumb-item:hover,
     .article-thumb-item.active {
+      height: 170px;
       border-radius: 12px;
       border-color: rgba(255,255,255,0.22);
       box-shadow: 0 10px 24px rgba(0,0,0,0.22);
@@ -263,25 +264,13 @@
     }
 
     .article-thumb-media {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 170px;
+      position: relative;
+      width: 100%;
+      height: 100%;
       background: rgba(0,0,0,0.26);
       border-radius: inherit;
       overflow: hidden;
-      transform-origin: top center;
-      transform: translateZ(0) scaleY(0.07);
-      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.2s ease;
-      backface-visibility: hidden;
-      will-change: transform;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    }
-
-    .article-thumb-item:hover .article-thumb-media,
-    .article-thumb-item.active .article-thumb-media {
-      transform: translateZ(0) scaleY(1);
+      transition: border-radius 0.2s ease;
     }
 
     .article-thumb-image {

@@ -238,21 +238,23 @@
 
     .article-thumb-item {
       flex-shrink: 0;
+      position: relative;
+      height: 12px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
-      overflow: hidden;
+      overflow: visible;
       cursor: pointer;
-      max-height: 12px;
-      transition: max-height 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      transition: border-radius 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      will-change: transform;
     }
 
     .article-thumb-item:hover,
     .article-thumb-item.active {
-      max-height: 170px;
       border-radius: 12px;
       border-color: rgba(255,255,255,0.22);
       box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+      z-index: 3;
     }
 
     .article-thumb-item.active {
@@ -261,8 +263,25 @@
     }
 
     .article-thumb-media {
-      height: 104px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 170px;
       background: rgba(0,0,0,0.26);
+      border-radius: inherit;
+      overflow: hidden;
+      transform-origin: top center;
+      transform: translateZ(0) scaleY(0.07);
+      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.2s ease;
+      backface-visibility: hidden;
+      will-change: transform;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .article-thumb-item:hover .article-thumb-media,
+    .article-thumb-item.active .article-thumb-media {
+      transform: translateZ(0) scaleY(1);
     }
 
     .article-thumb-image {
@@ -279,11 +298,19 @@
     }
 
     .article-thumb-meta {
-      padding: 10px 12px 11px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 22px 12px 11px;
+      background: linear-gradient(to top, rgba(20, 20, 19, 0.78), rgba(20, 20, 19, 0));
+      border-bottom-left-radius: inherit;
+      border-bottom-right-radius: inherit;
       opacity: 0;
       transform: translateY(4px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity 0.18s ease, transform 0.22s ease;
       pointer-events: none;
+      z-index: 2;
     }
 
     .article-thumb-item:hover .article-thumb-meta,
@@ -1019,6 +1046,8 @@
       .mobile-sheet-overlay,
       .mobile-sheet,
       .article-thumb-item,
+      .article-thumb-media,
+      .article-thumb-meta,
       .wheel-card,
       .sidebar-wheel-track.swap-anim {
         transition: none !important;

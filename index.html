@@ -930,19 +930,32 @@
         return () => window.removeEventListener('scroll', onScroll);
       }, [viewMode, loading, data]);
 
-      // Scroll to article top after render when the article changes (more reliable on iOS Safari)
+      // Scroll to article top after render when the article changes
       useEffect(() => {
         if (viewMode !== 'article' || !currentArticle) return;
-        if (!isMobile()) return;
 
-        // Close mobile menu if switching happens while it's open
-        setMobileMenuOpen(false);
-        setShowMobileTab(true);
+        if (isMobile()) {
+          // Close mobile menu if switching happens while it's open
+          setMobileMenuOpen(false);
+          setShowMobileTab(true);
 
+          requestAnimationFrame(() => {
+            window.scrollTo(0, 0);
+            // iOS Safari sometimes needs a second tick
+            setTimeout(() => window.scrollTo(0, 0), 80);
+          });
+          return;
+        }
+
+        // Desktop: switching articles should start from the top.
         requestAnimationFrame(() => {
-          window.scrollTo(0, 0);
-          // iOS Safari sometimes needs a second tick
-          setTimeout(() => window.scrollTo(0, 0), 80);
+          try {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            const el = document.scrollingElement || document.documentElement;
+            if (el) el.scrollTop = 0;
+          } catch (e) {
+            window.scrollTo(0, 0);
+          }
         });
       }, [viewMode, currentArticle?.week]);
 

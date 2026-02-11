@@ -1662,10 +1662,12 @@
         const maxFocusWidth = availableWidth - minCollapsedWidth * (totalCards - 1);
         focusWidth = Math.max(130, Math.min(focusWidth, maxFocusWidth));
 
-        let collapsedWidth = (availableWidth - focusWidth) / (totalCards - 1);
-        if (collapsedWidth < minCollapsedWidth) {
-          collapsedWidth = minCollapsedWidth;
-          focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
+        // Keep total width strictly equal to availableWidth to lock week 52 at the right edge.
+        let collapsedWidth = Math.max(minCollapsedWidth, Math.round((availableWidth - focusWidth) / (totalCards - 1)));
+        focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
+        if (focusWidth < 100) {
+          focusWidth = 100;
+          collapsedWidth = (availableWidth - focusWidth) / (totalCards - 1);
         }
 
         const isFocus = index === focusIndex;

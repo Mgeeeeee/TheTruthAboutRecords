@@ -188,6 +188,13 @@
       min-height: 0;
     }
 
+    .article-list.image-catalog {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 2px;
+    }
+
     .article-item {
       padding: 12px 16px;
       margin-bottom: 4px;
@@ -227,6 +234,63 @@
     .article-item.pending .article-title-text {
       color: var(--color-mid-gray);
       font-style: italic;
+    }
+
+    .article-thumb-item {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .article-thumb-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+    }
+
+    .article-thumb-item.active {
+      border-color: rgba(217, 119, 87, 0.56);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.28);
+    }
+
+    .article-thumb-media {
+      height: 104px;
+      background: rgba(0,0,0,0.26);
+    }
+
+    .article-thumb-image {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .article-thumb-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(217, 119, 87, 0.22), rgba(255,255,255,0.08));
+    }
+
+    .article-thumb-meta {
+      padding: 10px 12px 11px;
+    }
+
+    .article-thumb-week {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.62);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .article-thumb-title {
+      color: var(--color-light);
+      font-size: 14px;
+      line-height: 1.4;
     }
 
     /* Sidebar wheel (desktop article mode) */
@@ -940,6 +1004,7 @@
       .mobile-tabbar,
       .mobile-sheet-overlay,
       .mobile-sheet,
+      .article-thumb-item,
       .wheel-card,
       .sidebar-wheel-track.swap-anim {
         transition: none !important;
@@ -1290,14 +1355,7 @@
       };
 
       const galleryItems = (data.articles || []).filter(a => a.image);
-      const currentArticleIndex = currentArticle
-        ? data.articles.findIndex(a => a.week === currentArticle.week)
-        : -1;
-      const wheelPrev = currentArticleIndex > 0 ? data.articles[currentArticleIndex - 1] : null;
-      const wheelCurrent = currentArticleIndex >= 0 ? data.articles[currentArticleIndex] : null;
-      const wheelNext = currentArticleIndex >= 0 && currentArticleIndex < data.articles.length - 1
-        ? data.articles[currentArticleIndex + 1]
-        : null;
+      const useImageCardCatalog = viewMode === 'article' && !isMobile();
       return (
         <div className="app">
           <aside className={`sidebar ${sidebarOpen ? 'expanded' : 'collapsed'}`}>
@@ -1329,54 +1387,41 @@
               </div>
             </div>
 
-            {viewMode === 'article' && wheelCurrent && !isMobile() && (
-              <div className="sidebar-wheel">
-                <div key={`wheel-${wheelCurrent.week}`} className="sidebar-wheel-track swap-anim">
-                  {wheelPrev && (
-                    <div className="wheel-card is-prev" onClick={() => goToArticle(wheelPrev.week)}>
-                      {wheelPrev.image && <img className="wheel-image" src={wheelPrev.image} alt={wheelPrev.title || ''} loading="lazy" decoding="async" />}
-                      <div className="wheel-overlay">
-                        <div className="wheel-week">Week {String(wheelPrev.week).padStart(2, '0')}</div>
-                        <div className="wheel-title">{wheelPrev.title || ''}</div>
-                      </div>
+            <div className={`article-list ${useImageCardCatalog ? 'image-catalog' : ''}`}>
+              {useImageCardCatalog ? (
+                (data.articles || []).map((item) => (
+                  <div
+                    key={item.week}
+                    className={`article-thumb-item ${currentArticle?.week === item.week ? 'active' : ''}`}
+                    onClick={() => goToArticle(item.week)}
+                  >
+                    <div className="article-thumb-media">
+                      {item.image ? (
+                        <img className="article-thumb-image" src={item.image} alt={item.title || ''} loading="lazy" decoding="async" />
+                      ) : (
+                        <div className="article-thumb-fallback" />
+                      )}
                     </div>
-                  )}
-
-                  <div className="wheel-card is-current">
-                    {wheelCurrent.image && <img className="wheel-image" src={wheelCurrent.image} alt={wheelCurrent.title || ''} decoding="async" fetchpriority="high" />}
-                    <div className="wheel-overlay">
-                      <div className="wheel-week">Week {String(wheelCurrent.week).padStart(2, '0')}</div>
-                      <div className="wheel-title">{wheelCurrent.title || ''}</div>
+                    <div className="article-thumb-meta">
+                      <div className="article-thumb-week">Week {String(item.week).padStart(2, '0')}</div>
+                      <div className="article-thumb-title">{item.title || ''}</div>
                     </div>
                   </div>
-
-                  {wheelNext && (
-                    <div className="wheel-card is-next" onClick={() => goToArticle(wheelNext.week)}>
-                      {wheelNext.image && <img className="wheel-image" src={wheelNext.image} alt={wheelNext.title || ''} loading="lazy" decoding="async" />}
-                      <div className="wheel-overlay">
-                        <div className="wheel-week">Week {String(wheelNext.week).padStart(2, '0')}</div>
-                        <div className="wheel-title">{wheelNext.title || ''}</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="sidebar-wheel-hint">点击上/下卡片切换文章</div>
-              </div>
-            )}
-
-            <div className="article-list">
-              {allWeeks.map((item) => (
-                <div
-                  key={item.week}
-                  className={`article-item ${item.pending ? 'pending' : ''} ${currentArticle?.week === item.week ? 'active' : ''}`}
-                  onClick={() => !item.pending && goToArticle(item.week)}
-                >
-                  <span className="week-number">{String(item.week).padStart(2, '0')}</span>
-                  <span className="article-title-text">
-                    {item.pending ? '待续' : item.title}
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                allWeeks.map((item) => (
+                  <div
+                    key={item.week}
+                    className={`article-item ${item.pending ? 'pending' : ''} ${currentArticle?.week === item.week ? 'active' : ''}`}
+                    onClick={() => !item.pending && goToArticle(item.week)}
+                  >
+                    <span className="week-number">{String(item.week).padStart(2, '0')}</span>
+                    <span className="article-title-text">
+                      {item.pending ? '待续' : item.title}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </aside>
 

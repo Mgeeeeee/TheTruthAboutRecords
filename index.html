@@ -235,7 +235,8 @@
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      overflow-x: auto;
+      overflow-x: hidden;
+      width: 100%;
       height: 132px;
       padding: 6px 2px 6px;
       margin-bottom: 20px;
@@ -1195,7 +1196,9 @@
       const [loading, setLoading] = useState(true);
       const [loadError, setLoadError] = useState(null);
       const [hoveredTopWeek, setHoveredTopWeek] = useState(null);
+      const [topCatalogWidth, setTopCatalogWidth] = useState(0);
       const lockedScrollYRef = useRef(0);
+      const topCatalogRef = useRef(null);
 
       useEffect(() => {
         if (ARTICLES_DATA) {
@@ -1430,9 +1433,10 @@
 
       const progress = (data.completed / data.total) * 100;
 
-      // Generate all 52 weeks
+      // Generate all 52 weeks (fixed)
+      const TOTAL_WEEKS = 52;
       const allWeeks = [];
-      for (let i = 1; i <= data.total; i++) {
+      for (let i = 1; i <= TOTAL_WEEKS; i++) {
         const article = data.articles.find(a => a.week === i);
         allWeeks.push(article || { week: i, pending: true });
       }
@@ -1534,17 +1538,88 @@
 
       const galleryItems = (data.articles || []).filter(a => a.image);
       const showTopCatalog = viewMode === 'article' && !isMobile();
+      useEffect(() => {
+        if (!showTopCatalog) return;
+        const el = topCatalogRef.current;
+        if (!el) return;
+
+        const updateWidth = () => {
+          setTopCatalogWidth(el.clientWidth || 0);
+        };
+
+        updateWidth();
+
+        if (typeof ResizeObserver === 'function') {
+          const observer = new ResizeObserver(updateWidth);
+          observer.observe(el);
+          return () => observer.disconnect();
+        }
+
+        window.addEventListener('resize', updateWidth);
+        return () => window.removeEventListener('resize', updateWidth);
+      }, [showTopCatalog, allWeeks.length]);
+
       const focusedWeek = hoveredTopWeek || currentArticle?.week;
       const currentWeekIndex = focusedWeek
         ? allWeeks.findIndex(a => a.week === focusedWeek)
         : -1;
       const getTopCardMetrics = (index) => {
-        if (index === currentWeekIndex) return { width: 260, height: 124, opacity: 1 };
-        const distance = Math.abs(index - currentWeekIndex);
+        const totalCards = allWeeks.length || 1;
+        const gap = 8;
+        const horizontalPadding = 4;
+        const containerWidth = Math.max(360, topCatalogWidth || 0);
+
+        if (totalCards === 1) {
+          return { width: containerWidth - horizontalPadding, height: 124, opacity: 1 };
+        }
+
+        const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
+        const firstIndex = 0;
+        const lastIndex = totalCards - 1;
+        const edgeWidth = 12;
+
+        const availableWidth = Math.max(
+          220,
+          containerWidth - horizontalPadding - gap * (totalCards - 1) - edgeWidth * 2
+        );
+
+        // First/last cards are anchored at both ends.
+        if (index === firstIndex || index === lastIndex) {
+          const edgeFocused = index === focusIndex;
+          return {
+            width: edgeWidth,
+            height: edgeFocused ? 124 : 58,
+            opacity: edgeFocused ? 1 : 0.78
+          };
+        }
+
+        const middleIndices = [];
+        for (let i = 1; i < lastIndex; i++) middleIndices.push(i);
+
+        const sigma = 0.9;
+        const strength = 64;
+        const weights = middleIndices.map((i) => {
+          const distance = Math.abs(i - focusIndex);
+          return 1 + strength * Math.exp(-(distance * distance) / (2 * sigma * sigma));
+        });
+        const weightSum = weights.reduce((sum, w) => sum + w, 0) || 1;
+
+        const middleCount = middleIndices.length || 1;
+        const minMidWidth = Math.max(2, Math.min(6, availableWidth / middleCount * 0.4));
+        const extraPool = Math.max(0, availableWidth - minMidWidth * middleCount);
+
+        const midPos = index - 1;
+        const ratio = weights[midPos] / weightSum;
+        const width = minMidWidth + extraPool * ratio;
+
+        const distance = Math.abs(index - focusIndex);
+        const height = 58 + 66 * Math.exp(-(distance * distance) / (2 * 1.15 * 1.15));
+        const opacity = 0.72 + 0.28 * Math.exp(-(distance * distance) / (2 * 1.6 * 1.6));
+
         return {
-          width: Math.max(12, 24 - distance),
-          height: Math.max(30, 94 - distance * 8),
-          opacity: Math.max(0.5, 0.9 - distance * 0.06)
+          width,
+          height,
+          opacity
         };
       };
       return (
@@ -1642,6 +1717,7 @@
                   <article className="article-view">
                     {showTopCatalog && (
                       <div
+                        ref={topCatalogRef}
                         className="top-catalog-strip"
                         onMouseMove={handleTopCatalogMouseMove}
                         onMouseLeave={() => setHoveredTopWeek(null)}

@@ -237,7 +237,7 @@
       gap: 8px;
       overflow-x: hidden;
       width: 100%;
-      height: 132px;
+      height: 136px;
       padding: 6px 2px 6px;
       margin-bottom: 20px;
       scrollbar-width: none;
@@ -1569,58 +1569,45 @@
         const gap = 8;
         const horizontalPadding = 4;
         const containerWidth = Math.max(360, topCatalogWidth || 0);
+        const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
 
         if (totalCards === 1) {
-          return { width: containerWidth - horizontalPadding, height: 124, opacity: 1 };
+          return { width: containerWidth - horizontalPadding, height: 120, opacity: 1 };
         }
-
-        const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
-        const firstIndex = 0;
-        const lastIndex = totalCards - 1;
-        const edgeWidth = 12;
 
         const availableWidth = Math.max(
           220,
-          containerWidth - horizontalPadding - gap * (totalCards - 1) - edgeWidth * 2
+          containerWidth - horizontalPadding - gap * (totalCards - 1)
         );
 
-        // First/last cards are anchored at both ends.
-        if (index === firstIndex || index === lastIndex) {
-          const edgeFocused = index === focusIndex;
-          return {
-            width: edgeWidth,
-            height: edgeFocused ? 124 : 58,
-            opacity: edgeFocused ? 1 : 0.78
-          };
+        // All collapsed cards keep exactly the same width (including week 1 & 52).
+        const minCollapsedWidth = 4;
+
+        // Focus card expands with original image-like aspect ratio (landscape ~1.5:1).
+        const focusHeight = 120;
+        const focusAspect = 1.5;
+        let focusWidth = Math.round(focusHeight * focusAspect);
+
+        const maxFocusWidth = availableWidth - minCollapsedWidth * (totalCards - 1);
+        focusWidth = Math.max(130, Math.min(focusWidth, maxFocusWidth));
+
+        let collapsedWidth = (availableWidth - focusWidth) / (totalCards - 1);
+        if (collapsedWidth < minCollapsedWidth) {
+          collapsedWidth = minCollapsedWidth;
+          focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
         }
 
-        const middleIndices = [];
-        for (let i = 1; i < lastIndex; i++) middleIndices.push(i);
-
-        const sigma = 0.9;
-        const strength = 64;
-        const weights = middleIndices.map((i) => {
-          const distance = Math.abs(i - focusIndex);
-          return 1 + strength * Math.exp(-(distance * distance) / (2 * sigma * sigma));
-        });
-        const weightSum = weights.reduce((sum, w) => sum + w, 0) || 1;
-
-        const middleCount = middleIndices.length || 1;
-        const minMidWidth = Math.max(2, Math.min(6, availableWidth / middleCount * 0.4));
-        const extraPool = Math.max(0, availableWidth - minMidWidth * middleCount);
-
-        const midPos = index - 1;
-        const ratio = weights[midPos] / weightSum;
-        const width = minMidWidth + extraPool * ratio;
-
+        const isFocus = index === focusIndex;
         const distance = Math.abs(index - focusIndex);
-        const height = 58 + 66 * Math.exp(-(distance * distance) / (2 * 1.15 * 1.15));
-        const opacity = 0.72 + 0.28 * Math.exp(-(distance * distance) / (2 * 1.6 * 1.6));
+
+        const height = isFocus
+          ? focusHeight
+          : Math.max(54, 88 - distance * 2.6);
 
         return {
-          width,
+          width: isFocus ? focusWidth : collapsedWidth,
           height,
-          opacity
+          opacity: isFocus ? 1 : Math.max(0.72, 0.9 - distance * 0.02)
         };
       };
       return (
@@ -1735,6 +1722,7 @@
                               style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity }}
                               onClick={() => {
                                 if (item.pending) return;
+                                setHoveredTopWeek(item.week);
                                 goToArticle(item.week);
                               }}
                             >

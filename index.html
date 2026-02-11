@@ -39,22 +39,7 @@
 
     body {
       font-family: var(--font-body);
-      background:
-        repeating-linear-gradient(
-          0deg,
-          rgba(20, 20, 19, 0.04) 0px,
-          rgba(20, 20, 19, 0.04) 1px,
-          transparent 1px,
-          transparent 28px
-        ),
-        repeating-linear-gradient(
-          90deg,
-          rgba(20, 20, 19, 0.04) 0px,
-          rgba(20, 20, 19, 0.04) 1px,
-          transparent 1px,
-          transparent 28px
-        ),
-        var(--color-light);
+      background: var(--color-light);
       color: var(--color-dark);
       line-height: 1.8;
       min-height: 100vh;
@@ -248,10 +233,10 @@
 
     .top-catalog-strip {
       display: flex;
-      align-items: flex-end;
+      align-items: flex-start;
       gap: 8px;
       overflow-x: auto;
-      padding: 4px 2px 14px;
+      padding: 6px 2px 16px;
       margin-bottom: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -267,12 +252,13 @@
       position: relative;
       flex: 0 0 auto;
       border: 1px solid rgba(20, 20, 19, 0.16);
-      border-radius: 999px;
+      border-radius: 8px;
       background: rgba(255,255,255,0.75);
       overflow: hidden;
       padding: 0;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-radius 0.2s ease, opacity 0.2s ease;
+      transition: width 0.2s ease, height 0.2s ease, transform 0.16s ease, border-radius 0.2s ease, border-color 0.2s ease;
+      will-change: width, height, transform;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -291,13 +277,12 @@
     .top-catalog-card.current {
       border-radius: 16px;
       border-color: rgba(217, 119, 87, 0.42);
-      box-shadow: 0 14px 28px rgba(20, 20, 19, 0.16);
+      box-shadow: 0 8px 18px rgba(20, 20, 19, 0.14);
     }
 
     .top-catalog-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(20, 20, 19, 0.15);
-      opacity: 1 !important;
+      box-shadow: 0 6px 12px rgba(20, 20, 19, 0.12);
     }
 
     .top-catalog-overlay {
@@ -314,8 +299,7 @@
       pointer-events: none;
     }
 
-    .top-catalog-card.current .top-catalog-overlay,
-    .top-catalog-card:hover .top-catalog-overlay {
+    .top-catalog-card.current .top-catalog-overlay {
       opacity: 1;
     }
 
@@ -1522,12 +1506,12 @@
         ? data.articles.findIndex(a => a.week === currentArticle.week)
         : -1;
       const getTopCardMetrics = (index) => {
-        if (index === currentWeekIndex) return { width: 248, height: 126, opacity: 1 };
+        if (index === currentWeekIndex) return { width: 260, height: 124, opacity: 1 };
         const distance = Math.abs(index - currentWeekIndex);
         return {
-          width: Math.max(14, 28 - distance),
-          height: Math.max(34, 98 - distance * 7),
-          opacity: Math.max(0.42, 0.92 - distance * 0.07)
+          width: Math.max(12, 24 - distance),
+          height: Math.max(30, 94 - distance * 8),
+          opacity: Math.max(0.5, 0.9 - distance * 0.06)
         };
       };
       return (

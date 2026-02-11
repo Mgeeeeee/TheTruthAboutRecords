@@ -276,6 +276,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center center;
       display: block;
     }
 
@@ -1720,10 +1721,11 @@
         const isFocus = index === focusIndex;
         const distance = Math.abs(index - focusIndex);
         const focusHeight = Math.round(focusWidth / cardAspectRatio);
-        const collapsedBaseHeight = Math.max(42, Math.min(64, Math.round(collapsedWidth * 6)));
+        const minCollapsedHeight = 54;
+        const collapsedBaseHeight = Math.max(minCollapsedHeight, Math.min(84, Math.round(collapsedWidth * 7.6)));
         const height = isFocus
           ? focusHeight
-          : Math.max(40, collapsedBaseHeight - distance * 1.8);
+          : Math.max(minCollapsedHeight, Math.round(collapsedBaseHeight - distance * 0.9));
 
         return {
           width: isFocus ? focusWidth : collapsedWidth,

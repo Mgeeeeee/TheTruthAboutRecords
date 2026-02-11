@@ -264,8 +264,7 @@
       padding: 0;
       cursor: pointer;
       --lift-y: 0px;
-      --scale-x: 1;
-      transform: translateY(var(--lift-y)) scaleX(var(--scale-x));
+      transform: translateY(var(--lift-y));
       transform-origin: center top;
       transition: width 0.26s var(--ease-smooth), height 0.26s var(--ease-smooth), transform 0.2s var(--ease-smooth), border-color 0.24s var(--ease-smooth), box-shadow 0.24s var(--ease-smooth), filter 0.24s var(--ease-smooth);
       will-change: width, height, transform;
@@ -307,11 +306,6 @@
       align-items: flex-start;
       justify-content: center;
     }
-
-    .top-catalog-item.edge-right {
-      margin-left: auto;
-    }
-
 
     .top-catalog-hover-index {
       position: absolute;
@@ -1638,7 +1632,7 @@
         const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
 
         if (totalCards === 1) {
-          return { width: containerWidth - horizontalPadding, height: 120, opacity: 1, scaleX: 1, zIndex: 3 };
+          return { width: containerWidth - horizontalPadding, height: 120, opacity: 1, zIndex: 3 };
         }
 
         const availableWidth = Math.max(
@@ -1646,26 +1640,27 @@
           containerWidth - horizontalPadding - gap * (totalCards - 1)
         );
 
-        // Keep each slot width constant to eliminate left/right jitter on fast hover.
-        const slotWidth = Math.max(4, availableWidth / totalCards);
+        const desiredFocusWidth = 180;
+        let collapsedWidth = Math.floor((availableWidth - desiredFocusWidth) / (totalCards - 1));
+        collapsedWidth = Math.max(6, collapsedWidth);
+        let focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
 
-        const focusHeight = 120;
-        const focusAspect = 1.5;
-        const desiredFocusWidth = Math.max(130, Math.round(focusHeight * focusAspect));
-        const scaleX = Math.min(4, Math.max(1, desiredFocusWidth / slotWidth));
+        if (focusWidth < 120) {
+          collapsedWidth = Math.max(4, collapsedWidth - 1);
+          focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
+        }
 
         const isFocus = index === focusIndex;
         const distance = Math.abs(index - focusIndex);
 
         const height = isFocus
-          ? focusHeight
+          ? 120
           : Math.max(54, 88 - distance * 2.6);
 
         return {
-          width: slotWidth,
+          width: isFocus ? focusWidth : collapsedWidth,
           height,
           opacity: isFocus ? 1 : Math.max(0.72, 0.9 - distance * 0.02),
-          scaleX: isFocus ? scaleX : 1,
           zIndex: isFocus ? 4 : 1
         };
       };
@@ -1772,19 +1767,18 @@
                         {allWeeks.map((item, index) => {
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
-                          const showTitle = isCurrent || hoveredTopWeek === item.week;
+                          const isFocused = focusedWeek === item.week;
+                          const showTitle = isFocused;
                           const showHoverIndex = hoveredTopWeek === item.week;
-                          const isFirst = index === 0;
-                          const isLast = index === allWeeks.length - 1;
                           return (
                             <div
                               key={item.week}
-                              className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''} ${isFirst ? 'edge-left' : ''} ${isLast ? 'edge-right' : ''}`}
+                              className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''}`}
                             >
                               <button
                                 data-week={item.week}
                                 className={`top-catalog-card ${isCurrent ? 'current' : ''} ${showTitle ? 'show-title' : ''} ${item.pending ? 'pending' : ''}`}
-                                style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity, zIndex: metrics.zIndex, '--scale-x': metrics.scaleX }}
+                                style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity, zIndex: metrics.zIndex }}
                                 onClick={() => {
                                   if (item.pending) return;
                                   setHoveredTopWeek(item.week);

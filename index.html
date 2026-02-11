@@ -296,19 +296,6 @@
       background: linear-gradient(135deg, rgba(217, 119, 87, 0.22), rgba(255,255,255,0.08));
     }
 
-    .article-thumb-loading {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(120deg, rgba(255,255,255,0.04), rgba(255,255,255,0.1), rgba(255,255,255,0.04));
-      background-size: 220% 100%;
-      animation: thumbShimmer 1.8s linear infinite;
-    }
-
-    @keyframes thumbShimmer {
-      from { background-position: 100% 0; }
-      to { background-position: -100% 0; }
-    }
-
     .article-thumb-meta {
       position: absolute;
       left: 0;
@@ -1062,7 +1049,6 @@
       .article-thumb-item,
       .article-thumb-media,
       .article-thumb-meta,
-      .article-thumb-loading,
       .wheel-card,
       .sidebar-wheel-track.swap-anim {
         transition: none !important;
@@ -1092,7 +1078,6 @@
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const [loading, setLoading] = useState(true);
       const [loadError, setLoadError] = useState(null);
-      const [loadedThumbMap, setLoadedThumbMap] = useState({});
       const lockedScrollYRef = useRef(0);
 
       useEffect(() => {
@@ -1236,32 +1221,13 @@
         });
       }, [viewMode, currentArticle?.week]);
 
-      const ensureThumbLoaded = (week) => {
-        setLoadedThumbMap(prev => {
-          if (prev[week]) return prev;
-          return { ...prev, [week]: true };
-        });
+      const getThumbSrc = (src) => {
+        if (!src || typeof src !== 'string') return src;
+        if (!src.startsWith('./assets/')) return src;
+        const filename = src.split('/').pop() || '';
+        const stem = filename.replace(/\.[^.]+$/, '');
+        return `./assets/thumbs/${stem}.webp`;
       };
-
-      // Desktop image catalog: only load active/nearby covers first, then load others on hover/click.
-      useEffect(() => {
-        if (!data || viewMode !== 'article' || !currentArticle || isMobile()) return;
-        const currentIndex = data.articles.findIndex(a => a.week === currentArticle.week);
-        const weeksToLoad = [currentArticle.week];
-        if (currentIndex > 0) weeksToLoad.push(data.articles[currentIndex - 1].week);
-        if (currentIndex < data.articles.length - 1) weeksToLoad.push(data.articles[currentIndex + 1].week);
-        setLoadedThumbMap(prev => {
-          let changed = false;
-          const next = { ...prev };
-          weeksToLoad.forEach((w) => {
-            if (!next[w]) {
-              next[w] = true;
-              changed = true;
-            }
-          });
-          return changed ? next : prev;
-        });
-      }, [data, viewMode, currentArticle?.week]);
 
       const handleFileUpload = (event) => {
         const file = event.target.files && event.target.files[0];
@@ -1477,25 +1443,22 @@
               {useImageCardCatalog ? (
                 (data.articles || []).map((item) => {
                   const isActive = currentArticle?.week === item.week;
-                  const shouldLoadThumb = isActive || !!loadedThumbMap[item.week];
                   return (
                     <div
                       key={item.week}
                       className={`article-thumb-item ${isActive ? 'active' : ''}`}
-                      onMouseEnter={() => ensureThumbLoaded(item.week)}
-                      onFocus={() => ensureThumbLoaded(item.week)}
-                      onClick={() => {
-                        ensureThumbLoaded(item.week);
-                        goToArticle(item.week);
-                      }}
+                      onClick={() => goToArticle(item.week)}
                     >
                       <div className="article-thumb-media">
                         {item.image ? (
-                          shouldLoadThumb ? (
-                            <img className="article-thumb-image" src={item.image} alt={item.title || ''} loading="lazy" decoding="async" />
-                          ) : (
-                            <div className="article-thumb-loading" />
-                          )
+                          <img
+                            className="article-thumb-image"
+                            src={getThumbSrc(item.image)}
+                            alt={item.title || ''}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { if (e.currentTarget.src !== item.image) e.currentTarget.src = item.image; }}
+                          />
                         ) : (
                           <div className="article-thumb-fallback" />
                         )}
@@ -1548,7 +1511,13 @@
                             goToArticle(article.week, { openSidebar: true });
                           }}
                         >
-                        <img src={article.image} alt={article.title || ''} loading="lazy" decoding="async" />
+                        <img
+                          src={getThumbSrc(article.image)}
+                          alt={article.title || ''}
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => { if (e.currentTarget.src !== article.image) e.currentTarget.src = article.image; }}
+                        />
                         <div className="gallery-card-body">
                           <div className="gallery-week">Week {week}</div>
                           <div className="gallery-card-title">{article.title || ''}</div>

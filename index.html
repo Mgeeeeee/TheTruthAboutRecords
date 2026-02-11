@@ -229,6 +229,115 @@
       font-style: italic;
     }
 
+    /* Sidebar wheel (desktop article mode) */
+    .sidebar-wheel {
+      margin-bottom: 20px;
+    }
+
+    .sidebar-wheel-track {
+      position: relative;
+      height: 274px;
+      margin-bottom: 12px;
+      perspective: 800px;
+    }
+
+    .wheel-card {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      cursor: pointer;
+      transition: transform 0.26s ease, opacity 0.26s ease, filter 0.26s ease;
+      box-shadow: 0 16px 30px rgba(0,0,0,0.22);
+    }
+
+    .wheel-card.is-prev,
+    .wheel-card.is-next {
+      height: 112px;
+      opacity: 0.55;
+      filter: saturate(0.85);
+      z-index: 1;
+    }
+
+    .wheel-card.is-prev {
+      top: 0;
+      transform: translateY(0) scale(0.95);
+    }
+
+    .wheel-card.is-next {
+      bottom: 0;
+      transform: translateY(0) scale(0.95);
+    }
+
+    .wheel-card.is-current {
+      top: 50%;
+      height: 168px;
+      transform: translateY(-50%);
+      opacity: 1;
+      z-index: 2;
+      border-color: rgba(217, 119, 87, 0.48);
+      box-shadow: 0 22px 36px rgba(0,0,0,0.28);
+    }
+
+    .wheel-card:hover {
+      opacity: 0.9;
+      filter: saturate(1);
+    }
+
+    .wheel-card.is-prev:hover {
+      transform: translateY(-2px) scale(0.95);
+    }
+
+    .wheel-card.is-next:hover {
+      transform: translateY(-2px) scale(0.95);
+    }
+
+    .wheel-card.is-current:hover {
+      transform: translateY(calc(-50% - 2px));
+    }
+
+    .wheel-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .wheel-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0.06) 62%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px 12px;
+      color: #fff;
+    }
+
+    .wheel-week {
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      opacity: 0.82;
+    }
+
+    .wheel-title {
+      font-size: 13px;
+      line-height: 1.35;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .sidebar-wheel-hint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      letter-spacing: 0.4px;
+    }
+
     /* Main content */
     .main-content {
       flex: 1;
@@ -775,6 +884,16 @@
       }
     }
 
+    @media (min-width: 901px) {
+      /* Desktop: cover is moved to sidebar wheel, keep article content focused */
+      .main-content.article-mode .article-cover {
+        display: none;
+      }
+      .main-content.article-mode .article-header {
+        margin-bottom: 26px;
+      }
+    }
+
     @media (max-width: 720px) {
       .gallery-header {
         flex-direction: column;
@@ -1137,6 +1256,14 @@
       };
 
       const galleryItems = (data.articles || []).filter(a => a.image);
+      const currentArticleIndex = currentArticle
+        ? data.articles.findIndex(a => a.week === currentArticle.week)
+        : -1;
+      const wheelPrev = currentArticleIndex > 0 ? data.articles[currentArticleIndex - 1] : null;
+      const wheelCurrent = currentArticleIndex >= 0 ? data.articles[currentArticleIndex] : null;
+      const wheelNext = currentArticleIndex >= 0 && currentArticleIndex < data.articles.length - 1
+        ? data.articles[currentArticleIndex + 1]
+        : null;
       return (
         <div className="app">
           <aside className={`sidebar ${sidebarOpen ? 'expanded' : 'collapsed'}`}>
@@ -1167,6 +1294,41 @@
                 </div>
               </div>
             </div>
+
+            {viewMode === 'article' && wheelCurrent && !isMobile() && (
+              <div className="sidebar-wheel">
+                <div className="sidebar-wheel-track">
+                  {wheelPrev && (
+                    <div className="wheel-card is-prev" onClick={() => goToArticle(wheelPrev.week)}>
+                      {wheelPrev.image && <img className="wheel-image" src={wheelPrev.image} alt={wheelPrev.title || ''} loading="lazy" decoding="async" />}
+                      <div className="wheel-overlay">
+                        <div className="wheel-week">Week {String(wheelPrev.week).padStart(2, '0')}</div>
+                        <div className="wheel-title">{wheelPrev.title || ''}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="wheel-card is-current">
+                    {wheelCurrent.image && <img className="wheel-image" src={wheelCurrent.image} alt={wheelCurrent.title || ''} decoding="async" fetchpriority="high" />}
+                    <div className="wheel-overlay">
+                      <div className="wheel-week">Week {String(wheelCurrent.week).padStart(2, '0')}</div>
+                      <div className="wheel-title">{wheelCurrent.title || ''}</div>
+                    </div>
+                  </div>
+
+                  {wheelNext && (
+                    <div className="wheel-card is-next" onClick={() => goToArticle(wheelNext.week)}>
+                      {wheelNext.image && <img className="wheel-image" src={wheelNext.image} alt={wheelNext.title || ''} loading="lazy" decoding="async" />}
+                      <div className="wheel-overlay">
+                        <div className="wheel-week">Week {String(wheelNext.week).padStart(2, '0')}</div>
+                        <div className="wheel-title">{wheelNext.title || ''}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="sidebar-wheel-hint">点击上/下卡片切换文章</div>
+              </div>
+            )}
 
             <div className="article-list">
               {allWeeks.map((item) => (

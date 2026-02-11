@@ -239,6 +239,7 @@
       height: 274px;
       margin-bottom: 12px;
       perspective: 800px;
+      isolation: isolate;
     }
 
     .wheel-card {
@@ -250,7 +251,7 @@
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.12);
       cursor: pointer;
-      transition: transform 0.26s ease, opacity 0.26s ease, filter 0.26s ease;
+      transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, filter 0.24s ease, box-shadow 0.34s cubic-bezier(0.22, 1, 0.36, 1);
       box-shadow: 0 16px 30px rgba(0,0,0,0.22);
     }
 
@@ -278,25 +279,38 @@
       transform: translateY(-50%);
       opacity: 1;
       z-index: 2;
+      background: #0f0f0f;
       border-color: rgba(217, 119, 87, 0.48);
       box-shadow: 0 22px 36px rgba(0,0,0,0.28);
     }
 
     .wheel-card:hover {
-      opacity: 0.9;
       filter: saturate(1);
     }
 
     .wheel-card.is-prev:hover {
+      opacity: 0.7;
       transform: translateY(-2px) scale(0.95);
     }
 
     .wheel-card.is-next:hover {
+      opacity: 0.7;
       transform: translateY(-2px) scale(0.95);
     }
 
     .wheel-card.is-current:hover {
+      opacity: 1;
+      z-index: 3;
       transform: translateY(calc(-50% - 2px));
+    }
+
+    /* Prevent seeing the card underneath if the current image has alpha channel. */
+    .wheel-card.is-current::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #0f0f0f;
+      z-index: 0;
     }
 
     .wheel-image {
@@ -304,6 +318,8 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      position: relative;
+      z-index: 1;
     }
 
     .wheel-overlay {
@@ -315,6 +331,7 @@
       justify-content: flex-end;
       padding: 10px 12px;
       color: #fff;
+      z-index: 2;
     }
 
     .wheel-week {
@@ -336,6 +353,21 @@
       color: rgba(255,255,255,0.45);
       text-align: center;
       letter-spacing: 0.4px;
+    }
+
+    @keyframes wheelSwapIn {
+      from {
+        opacity: 0.84;
+        transform: translateY(6px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .sidebar-wheel-track.swap-anim {
+      animation: wheelSwapIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     /* Main content */
@@ -907,7 +939,9 @@
     @media (prefers-reduced-motion: reduce) {
       .mobile-tabbar,
       .mobile-sheet-overlay,
-      .mobile-sheet {
+      .mobile-sheet,
+      .wheel-card,
+      .sidebar-wheel-track.swap-anim {
         transition: none !important;
         animation: none !important;
       }
@@ -1297,7 +1331,7 @@
 
             {viewMode === 'article' && wheelCurrent && !isMobile() && (
               <div className="sidebar-wheel">
-                <div className="sidebar-wheel-track">
+                <div key={`wheel-${wheelCurrent.week}`} className="sidebar-wheel-track swap-anim">
                   {wheelPrev && (
                     <div className="wheel-card is-prev" onClick={() => goToArticle(wheelPrev.week)}>
                       {wheelPrev.image && <img className="wheel-image" src={wheelPrev.image} alt={wheelPrev.title || ''} loading="lazy" decoding="async" />}

@@ -21,6 +21,8 @@
       --color-green: #788c5d;
       --font-heading: 'Poppins', 'Noto Serif SC', sans-serif;
       --font-body: 'Lora', 'Noto Serif SC', Georgia, serif;
+      --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
     * {
@@ -237,8 +239,8 @@
       gap: 8px;
       overflow-x: hidden;
       width: 100%;
-      height: 152px;
-      padding: 6px 2px 20px;
+      height: 166px;
+      padding: 6px 2px 24px;
       margin-bottom: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -253,13 +255,13 @@
     .top-catalog-card {
       position: relative;
       flex: 0 0 auto;
-      border: 1px solid rgba(20, 20, 19, 0.16);
+      border: 1px solid rgba(20, 20, 19, 0.14);
       border-radius: 14px;
       background: rgba(255,255,255,0.75);
       overflow: hidden;
       padding: 0;
       cursor: pointer;
-      transition: width 0.2s ease, height 0.2s ease, transform 0.16s ease, border-color 0.2s ease, box-shadow 0.16s ease;
+      transition: width 0.26s var(--ease-smooth), height 0.26s var(--ease-smooth), transform 0.2s var(--ease-smooth), border-color 0.24s var(--ease-smooth), box-shadow 0.24s var(--ease-smooth), filter 0.24s var(--ease-smooth);
       will-change: width, height, transform;
       -webkit-tap-highlight-color: transparent;
     }
@@ -277,8 +279,13 @@
     }
 
     .top-catalog-card.current {
-      border-color: rgba(217, 119, 87, 0.42);
-      box-shadow: 0 8px 18px rgba(20, 20, 19, 0.14);
+      border-color: rgba(217, 119, 87, 0.24);
+      background:
+        linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0)) padding-box,
+        linear-gradient(135deg, rgba(217, 119, 87, 0.5), rgba(106, 155, 204, 0.34)) border-box;
+      box-shadow:
+        0 6px 12px rgba(20, 20, 19, 0.08),
+        0 16px 28px rgba(20, 20, 19, 0.14);
     }
 
     .top-catalog-card.pending {
@@ -287,8 +294,11 @@
     }
 
     .top-catalog-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(20, 20, 19, 0.12);
+      transform: translateY(-3px);
+      filter: saturate(1.02);
+      box-shadow:
+        0 6px 12px rgba(20, 20, 19, 0.08),
+        0 14px 24px rgba(20, 20, 19, 0.14);
     }
 
     .top-catalog-item {
@@ -301,23 +311,30 @@
 
     .top-catalog-hover-index {
       position: absolute;
-      top: calc(100% + 4px);
+      top: calc(100% + 6px);
       left: 50%;
-      transform: translateX(-50%) translateY(-2px);
+      transform: translateX(-50%) translateY(-2px) scale(0.98);
       font-family: var(--font-heading);
-      font-size: 11px;
+      font-size: 10px;
+      font-weight: 600;
       line-height: 1;
-      letter-spacing: 0.8px;
-      color: rgba(20, 20, 19, 0.62);
+      letter-spacing: 1px;
+      color: rgba(20, 20, 19, 0.72);
+      background: rgba(250, 249, 245, 0.86);
+      border: 1px solid rgba(20, 20, 19, 0.12);
+      border-radius: 999px;
+      padding: 4px 8px;
+      box-shadow: 0 4px 10px rgba(20, 20, 19, 0.1);
+      backdrop-filter: blur(2px);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.16s ease, transform 0.16s ease;
+      transition: opacity 0.2s var(--ease-snappy), transform 0.2s var(--ease-snappy);
       white-space: nowrap;
     }
 
     .top-catalog-item.show-hover-index .top-catalog-hover-index {
       opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      transform: translateX(-50%) translateY(0) scale(1);
     }
 
 
@@ -330,7 +347,7 @@
       padding: 16px 12px 12px;
       background: linear-gradient(to top, rgba(20, 20, 19, 0.72), rgba(20, 20, 19, 0));
       opacity: 0;
-      transition: opacity 0.18s ease;
+      transition: opacity 0.22s var(--ease-smooth);
       color: #fff;
       pointer-events: none;
     }
@@ -347,11 +364,28 @@
       font-family: var(--font-heading);
       font-size: 12px;
       font-weight: 600;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.2;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .top-catalog-line-week {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 11px;
+      letter-spacing: 0.9px;
+      flex: 0 0 auto;
+    }
+
+    .top-catalog-line-title {
+      color: rgba(255, 255, 255, 0.96);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .top-catalog-pending-label {
@@ -677,7 +711,7 @@
       background: rgba(217, 119, 87, 0.18);
       opacity: 0;
       transform: translateZ(0);
-      transition: opacity 0.18s ease;
+      transition: opacity 0.22s var(--ease-smooth);
       z-index: 0;
     }
 
@@ -1770,7 +1804,10 @@
                                   <div className="top-catalog-fallback" />
                                 )}
                                 <div className="top-catalog-overlay">
-                                  <div className="top-catalog-line">{`WEEK ${String(item.week).padStart(2, '0')}｜${item.pending ? '静待花开' : (item.title || '')}`}</div>
+                                  <div className="top-catalog-line">
+                                    <span className="top-catalog-line-week">{`WEEK ${String(item.week).padStart(2, '0')}｜`}</span>
+                                    <span className="top-catalog-line-title">{item.pending ? '静待花开' : (item.title || '')}</span>
+                                  </div>
                                 </div>
                               </button>
                               <div className="top-catalog-hover-index">{String(item.week).padStart(2, '0')}</div>

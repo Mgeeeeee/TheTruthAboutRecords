@@ -237,8 +237,8 @@
       gap: 8px;
       overflow-x: hidden;
       width: 100%;
-      height: 136px;
-      padding: 6px 2px 6px;
+      height: 152px;
+      padding: 6px 2px 20px;
       margin-bottom: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -297,7 +297,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 16px 12px 10px;
+      padding: 16px 12px 12px;
       background: linear-gradient(to top, rgba(20, 20, 19, 0.72), rgba(20, 20, 19, 0));
       opacity: 0;
       transition: opacity 0.18s ease;
@@ -313,19 +313,15 @@
       opacity: 0 !important;
     }
 
-    .top-catalog-week {
+    .top-catalog-line {
       font-family: var(--font-heading);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      opacity: 0.82;
-    }
-
-    .top-catalog-title {
-      margin-top: 3px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      line-height: 1.25;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
     }
 
     .top-catalog-pending-label {
@@ -1740,8 +1736,7 @@
                                 <div className="top-catalog-fallback" />
                               )}
                               <div className="top-catalog-overlay">
-                                <div className="top-catalog-week">Week {String(item.week).padStart(2, '0')}</div>
-                                <div className="top-catalog-title">{item.pending ? '静待花开' : (item.title || '')}</div>
+                                <div className="top-catalog-line">{`WEEK ${String(item.week).padStart(2, '0')}｜${item.pending ? '静待花开' : (item.title || '')}`}</div>
                               </div>
                             </button>
                           );

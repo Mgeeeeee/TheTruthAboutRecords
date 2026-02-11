@@ -284,21 +284,9 @@
       background: linear-gradient(135deg, rgba(217, 119, 87, 0.2), rgba(62, 95, 138, 0.14));
     }
 
-    @keyframes cardGlowPulse {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.025); }
-    }
-
     .top-catalog-card.current {
-      border-color: rgba(var(--theme-accent-rgb), 0.24);
-      background:
-        linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0)) padding-box,
-        linear-gradient(135deg, rgba(var(--theme-accent-rgb), 0.52), rgba(106, 155, 204, 0.34)) border-box;
-      box-shadow:
-        0 6px 12px rgba(20, 20, 19, 0.08),
-        0 16px 28px rgba(20, 20, 19, 0.14),
-        0 0 0 1px rgba(var(--theme-accent-rgb), 0.14) inset;
-      animation: cardGlowPulse 2.8s ease-in-out infinite;
+      border-color: rgba(var(--theme-accent-rgb), 0.5);
+      background: rgba(255,255,255,0.75);
     }
 
     .top-catalog-card.pending {
@@ -308,10 +296,8 @@
 
     .top-catalog-card:hover {
       --lift-y: -3px;
-      filter: saturate(1.02);
-      box-shadow:
-        0 6px 12px rgba(20, 20, 19, 0.08),
-        0 14px 24px rgba(20, 20, 19, 0.14);
+      filter: none;
+      box-shadow: none;
     }
 
     .top-catalog-item {
@@ -1666,7 +1652,7 @@
         const focusHeight = 120;
         const focusAspect = 1.5;
         const desiredFocusWidth = Math.max(130, Math.round(focusHeight * focusAspect));
-        const scaleX = Math.max(1, desiredFocusWidth / slotWidth);
+        const scaleX = Math.min(4, Math.max(1, desiredFocusWidth / slotWidth));
 
         const isFocus = index === focusIndex;
         const distance = Math.abs(index - focusIndex);
@@ -1786,7 +1772,7 @@
                         {allWeeks.map((item, index) => {
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
-                          const showTitle = isCurrent && !hoveredTopWeek;
+                          const showTitle = isCurrent || hoveredTopWeek === item.week;
                           const showHoverIndex = hoveredTopWeek === item.week;
                           const isFirst = index === 0;
                           const isLast = index === allWeeks.length - 1;

@@ -238,11 +238,11 @@
     .top-catalog-strip {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
+      gap: var(--catalog-gap, 8px);
       overflow-x: hidden;
       width: 100%;
       height: 166px;
-      padding: 6px 92px 24px;
+      padding: 6px var(--catalog-side-pad, 92px) 24px;
       margin-bottom: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -1625,30 +1625,71 @@
       const currentWeekIndex = focusedWeek
         ? allWeeks.findIndex(a => a.week === focusedWeek)
         : -1;
-      const getTopCardMetrics = (index) => {
+      const getCatalogLayout = () => {
         const totalCards = allWeeks.length || 1;
-        const gap = 8;
-        const horizontalPadding = 184;
         const containerWidth = Math.max(360, topCatalogWidth || 0);
-        const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
 
-        if (totalCards === 1) {
-          return { width: containerWidth - horizontalPadding, height: 120, opacity: 1, zIndex: 3 };
+        const preferredGap = 8;
+        const minGap = 2;
+        const preferredSidePadding = 92;
+        const minSidePadding = 16;
+        const minCollapsedWidth = 2;
+        const minFocusWidth = 120;
+
+        let chosenGap = preferredGap;
+        let chosenSidePadding = preferredSidePadding;
+
+        let found = false;
+        for (let gap = preferredGap; gap >= minGap && !found; gap -= 1) {
+          for (let side = preferredSidePadding; side >= minSidePadding; side -= 2) {
+            const available = containerWidth - side * 2 - gap * Math.max(0, totalCards - 1);
+            const maxFocus = available - minCollapsedWidth * Math.max(0, totalCards - 1);
+            if (maxFocus >= minFocusWidth) {
+              chosenGap = gap;
+              chosenSidePadding = side;
+              found = true;
+              break;
+            }
+          }
         }
 
         const availableWidth = Math.max(
-          220,
-          containerWidth - horizontalPadding - gap * (totalCards - 1)
+          minFocusWidth,
+          containerWidth - chosenSidePadding * 2 - chosenGap * Math.max(0, totalCards - 1)
         );
 
-        const targetFocusWidth = 180; // 3:2 for 120px height
-        let collapsedWidth = Math.floor((availableWidth - targetFocusWidth) / (totalCards - 1));
-        collapsedWidth = Math.max(6, collapsedWidth);
-        let focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
+        return {
+          totalCards,
+          containerWidth,
+          gap: chosenGap,
+          sidePadding: chosenSidePadding,
+          availableWidth,
+          minCollapsedWidth,
+          minFocusWidth
+        };
+      };
 
-        if (focusWidth < 120) {
-          collapsedWidth = Math.max(4, collapsedWidth - 1);
-          focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
+      const catalogLayout = getCatalogLayout();
+
+      const getTopCardMetrics = (index) => {
+        const totalCards = catalogLayout.totalCards;
+        const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
+
+        if (totalCards === 1) {
+          return { width: catalogLayout.availableWidth, height: 120, opacity: 1, zIndex: 3 };
+        }
+
+        const targetFocusWidth = 180; // 3:2 for 120px height
+        const slots = totalCards - 1;
+
+        let collapsedWidth = Math.floor((catalogLayout.availableWidth - targetFocusWidth) / slots);
+        collapsedWidth = Math.max(catalogLayout.minCollapsedWidth, collapsedWidth);
+
+        let focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
+
+        if (focusWidth < catalogLayout.minFocusWidth) {
+          collapsedWidth = Math.max(1, Math.floor((catalogLayout.availableWidth - catalogLayout.minFocusWidth) / slots));
+          focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
         }
 
         const isFocus = index === focusIndex;
@@ -1759,6 +1800,7 @@
                       <div
                         ref={topCatalogRef}
                         className="top-catalog-strip"
+                        style={{ '--catalog-gap': `${catalogLayout.gap}px`, '--catalog-side-pad': `${catalogLayout.sidePadding}px` }}
                         onMouseMove={handleTopCatalogMouseMove}
                         onMouseLeave={() => setHoveredTopWeek(null)}
                       >

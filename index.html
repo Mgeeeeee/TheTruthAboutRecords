@@ -1633,7 +1633,7 @@
         const minGap = 2;
         const preferredSidePadding = 92;
         const minSidePadding = 16;
-        const minCollapsedWidth = 2;
+        const minCollapsedWidth = 5;
         const minFocusWidth = 120;
 
         let chosenGap = preferredGap;
@@ -1651,6 +1651,11 @@
               break;
             }
           }
+        }
+
+        if (!found) {
+          chosenGap = minGap;
+          chosenSidePadding = minSidePadding;
         }
 
         const availableWidth = Math.max(
@@ -1688,7 +1693,7 @@
         let focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
 
         if (focusWidth < catalogLayout.minFocusWidth) {
-          collapsedWidth = Math.max(1, Math.floor((catalogLayout.availableWidth - catalogLayout.minFocusWidth) / slots));
+          collapsedWidth = Math.max(catalogLayout.minCollapsedWidth, Math.floor((catalogLayout.availableWidth - catalogLayout.minFocusWidth) / slots));
           focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
         }
 

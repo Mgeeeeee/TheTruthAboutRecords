@@ -1341,6 +1341,28 @@
         });
       }, [viewMode, currentArticle?.week]);
 
+      useEffect(() => {
+        const showTopCatalogNow = viewMode === 'article' && !isMobile();
+        if (!showTopCatalogNow) return;
+        const el = topCatalogRef.current;
+        if (!el) return;
+
+        const updateWidth = () => {
+          setTopCatalogWidth(el.clientWidth || 0);
+        };
+
+        updateWidth();
+
+        if (typeof ResizeObserver === 'function') {
+          const observer = new ResizeObserver(updateWidth);
+          observer.observe(el);
+          return () => observer.disconnect();
+        }
+
+        window.addEventListener('resize', updateWidth);
+        return () => window.removeEventListener('resize', updateWidth);
+      }, [viewMode, currentArticle?.week, data?.total]);
+
       const getThumbSrc = (src) => {
         if (!src || typeof src !== 'string') return src;
         if (!src.startsWith('./assets/')) return src;
@@ -1538,27 +1560,6 @@
 
       const galleryItems = (data.articles || []).filter(a => a.image);
       const showTopCatalog = viewMode === 'article' && !isMobile();
-      useEffect(() => {
-        if (!showTopCatalog) return;
-        const el = topCatalogRef.current;
-        if (!el) return;
-
-        const updateWidth = () => {
-          setTopCatalogWidth(el.clientWidth || 0);
-        };
-
-        updateWidth();
-
-        if (typeof ResizeObserver === 'function') {
-          const observer = new ResizeObserver(updateWidth);
-          observer.observe(el);
-          return () => observer.disconnect();
-        }
-
-        window.addEventListener('resize', updateWidth);
-        return () => window.removeEventListener('resize', updateWidth);
-      }, [showTopCatalog, allWeeks.length]);
-
       const focusedWeek = hoveredTopWeek || currentArticle?.week;
       const currentWeekIndex = focusedWeek
         ? allWeeks.findIndex(a => a.week === focusedWeek)

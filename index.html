@@ -1630,16 +1630,31 @@
         const containerWidth = Math.max(360, topCatalogWidth || 0);
 
         const preferredGap = 8;
-        const minGap = 2;
+        const minGap = 1;
         const preferredSidePadding = 92;
-        const minSidePadding = 16;
-        const minCollapsedWidth = 5;
+        const minSidePadding = 8;
+        const minCollapsedWidth = 7;
         const minFocusWidth = 120;
+        const targetFocusWidth = 168;
+        const targetCollapsedWidth = 8;
 
         let chosenGap = preferredGap;
         let chosenSidePadding = preferredSidePadding;
 
         let found = false;
+        const desiredAvailable = targetFocusWidth + targetCollapsedWidth * Math.max(0, totalCards - 1);
+        for (let gap = preferredGap; gap >= minGap && !found; gap -= 1) {
+          for (let side = preferredSidePadding; side >= minSidePadding; side -= 2) {
+            const available = containerWidth - side * 2 - gap * Math.max(0, totalCards - 1);
+            if (available >= desiredAvailable) {
+              chosenGap = gap;
+              chosenSidePadding = side;
+              found = true;
+              break;
+            }
+          }
+        }
+
         for (let gap = preferredGap; gap >= minGap && !found; gap -= 1) {
           for (let side = preferredSidePadding; side >= minSidePadding; side -= 2) {
             const available = containerWidth - side * 2 - gap * Math.max(0, totalCards - 1);
@@ -1670,7 +1685,8 @@
           sidePadding: chosenSidePadding,
           availableWidth,
           minCollapsedWidth,
-          minFocusWidth
+          minFocusWidth,
+          targetFocusWidth
         };
       };
 
@@ -1684,22 +1700,30 @@
           return { width: catalogLayout.availableWidth, height: 120, opacity: 1, zIndex: 3 };
         }
 
-        const targetFocusWidth = 180; // 3:2 for 120px height
+        const cardAspectRatio = 3 / 2;
+        const targetFocusWidth = catalogLayout.targetFocusWidth; // 3:2 for 112px height
         const slots = totalCards - 1;
 
-        let collapsedWidth = Math.floor((catalogLayout.availableWidth - targetFocusWidth) / slots);
-        collapsedWidth = Math.max(catalogLayout.minCollapsedWidth, collapsedWidth);
+        let focusWidth = targetFocusWidth;
+        let collapsedWidth = (catalogLayout.availableWidth - focusWidth) / slots;
 
-        let focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
+        if (collapsedWidth < catalogLayout.minCollapsedWidth) {
+          collapsedWidth = catalogLayout.minCollapsedWidth;
+          focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
+        }
 
         if (focusWidth < catalogLayout.minFocusWidth) {
-          collapsedWidth = Math.max(catalogLayout.minCollapsedWidth, Math.floor((catalogLayout.availableWidth - catalogLayout.minFocusWidth) / slots));
-          focusWidth = catalogLayout.availableWidth - collapsedWidth * slots;
+          focusWidth = catalogLayout.minFocusWidth;
+          collapsedWidth = (catalogLayout.availableWidth - focusWidth) / slots;
         }
 
         const isFocus = index === focusIndex;
         const distance = Math.abs(index - focusIndex);
-        const height = isFocus ? 120 : Math.max(54, 88 - distance * 2.6);
+        const focusHeight = Math.round(focusWidth / cardAspectRatio);
+        const collapsedBaseHeight = Math.max(42, Math.min(64, Math.round(collapsedWidth * 6)));
+        const height = isFocus
+          ? focusHeight
+          : Math.max(40, collapsedBaseHeight - distance * 1.8);
 
         return {
           width: isFocus ? focusWidth : collapsedWidth,

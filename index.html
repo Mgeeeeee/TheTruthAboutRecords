@@ -1640,9 +1640,12 @@
         const slotWidth = Math.max(4, availableWidth / Math.max(1, totalCards));
         const isFocus = index === focusIndex;
 
-        const focusWidth = Math.max(120, Math.min(192, slotWidth * 14));
+        // Keep expanded card at original-like aspect ratio (3:2).
+        const focusHeight = 120;
+        const focusAspect = 1.5;
+        const focusWidth = Math.round(focusHeight * focusAspect);
         const distance = Math.abs(index - focusIndex);
-        const height = isFocus ? 120 : Math.max(54, 88 - distance * 2.6);
+        const height = isFocus ? focusHeight : Math.max(54, 88 - distance * 2.6);
 
         return {
           slotWidth,

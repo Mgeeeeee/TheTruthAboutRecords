@@ -260,55 +260,50 @@
 
     .top-image-preview-panel {
       position: relative;
-      width: min(92vw, 1040px);
+      width: min(94vw, 1120px);
       max-height: 90vh;
-      background: rgba(255, 255, 255, 0.96);
-      border: 1px solid rgba(20, 20, 19, 0.12);
-      border-radius: 16px;
-      box-shadow: 0 22px 56px rgba(20, 20, 19, 0.24);
-      padding: 14px 14px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
       animation: riseInPreview 0.22s var(--ease-smooth);
-    }
-
-    .top-image-preview-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      border: 1px solid rgba(20, 20, 19, 0.14);
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 999px;
-      padding: 5px 10px;
-      font-size: 12px;
-      color: rgba(20, 20, 19, 0.8);
-      cursor: pointer;
-    }
-
-    .top-image-preview-close:hover {
-      border-color: rgba(var(--theme-accent-rgb), 0.45);
-      color: rgba(var(--theme-accent-rgb), 0.95);
     }
 
     .top-image-preview-image {
       width: 100%;
-      max-height: calc(90vh - 84px);
+      max-height: 90vh;
       object-fit: contain;
       object-position: center center;
-      border-radius: 12px;
-      background: rgba(236, 235, 228, 0.52);
+      border-radius: 16px;
+      border: 2px solid rgba(var(--theme-accent-rgb), 0.55);
+      box-shadow: 0 20px 48px rgba(20, 20, 19, 0.28);
       display: block;
+      background: transparent;
     }
 
     .top-image-preview-caption {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
       text-align: center;
       font-family: var(--font-heading);
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
-      color: rgba(20, 20, 19, 0.86);
+      color: rgba(var(--theme-accent-rgb), 0.96);
       letter-spacing: 0.35px;
-      margin-top: 2px;
+      background: linear-gradient(180deg, rgba(255, 247, 242, 0.98), rgba(255, 241, 232, 0.95));
+      border: 1px solid rgba(var(--theme-accent-rgb), 0.36);
+      border-radius: 999px;
+      padding: 5px 12px;
+      pointer-events: none;
+      box-shadow:
+        0 6px 16px rgba(20, 20, 19, 0.16),
+        0 0 0 1px rgba(var(--theme-accent-rgb), 0.08) inset;
+      max-width: calc(100% - 24px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     @keyframes fadeInPreview {
@@ -1656,7 +1651,6 @@
             {previewCard && (
               <div className="top-image-preview" onClick={() => setPreviewCard(null)}>
                 <div className="top-image-preview-panel" onClick={(e) => e.stopPropagation()}>
-                  <button className="top-image-preview-close" onClick={() => setPreviewCard(null)}>关闭</button>
                   <img className="top-image-preview-image" src={previewCard.image} alt={previewCard.title || ''} decoding="async" />
                   <div className="top-image-preview-caption">{`WEEK ${String(previewCard.week).padStart(2, '0')}｜${previewCard.title || ''}`}</div>
                 </div>

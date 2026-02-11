@@ -1847,9 +1847,8 @@
                         {allWeeks.map((item, index) => {
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
-                          const isFocused = focusedWeek === item.week;
-                          const showTitle = isFocused && !isCurrent;
-                          const showBottomTitle = isCurrent && (!hoveredTopWeek || hoveredTopWeek === item.week);
+                          const showTitle = false;
+                          const showBottomTitle = hoveredTopWeek ? hoveredTopWeek === item.week : isCurrent;
                           return (
                             <div
                               key={item.week}

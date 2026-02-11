@@ -255,7 +255,9 @@
     }
 
     .top-catalog-card {
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 0;
       flex: 0 0 auto;
       border: 1px solid rgba(20, 20, 19, 0.14);
       border-radius: 14px;
@@ -264,7 +266,7 @@
       padding: 0;
       cursor: pointer;
       --lift-y: 0px;
-      transform: translateY(var(--lift-y));
+      transform: translateX(-50%) translateY(var(--lift-y));
       transform-origin: center top;
       transition: width 0.26s var(--ease-smooth), height 0.26s var(--ease-smooth), transform 0.2s var(--ease-smooth), border-color 0.24s var(--ease-smooth), box-shadow 0.24s var(--ease-smooth), filter 0.24s var(--ease-smooth);
       will-change: width, height, transform;
@@ -302,9 +304,8 @@
     .top-catalog-item {
       position: relative;
       flex: 0 0 auto;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
+      display: block;
+      overflow: visible;
     }
 
     .top-catalog-hover-index {
@@ -1631,34 +1632,21 @@
         const containerWidth = Math.max(360, topCatalogWidth || 0);
         const focusIndex = currentWeekIndex >= 0 ? currentWeekIndex : 0;
 
-        if (totalCards === 1) {
-          return { width: containerWidth - horizontalPadding, height: 120, opacity: 1, zIndex: 3 };
-        }
-
         const availableWidth = Math.max(
           220,
-          containerWidth - horizontalPadding - gap * (totalCards - 1)
+          containerWidth - horizontalPadding - gap * Math.max(0, totalCards - 1)
         );
 
-        const desiredFocusWidth = 180;
-        let collapsedWidth = Math.floor((availableWidth - desiredFocusWidth) / (totalCards - 1));
-        collapsedWidth = Math.max(6, collapsedWidth);
-        let focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
-
-        if (focusWidth < 120) {
-          collapsedWidth = Math.max(4, collapsedWidth - 1);
-          focusWidth = availableWidth - collapsedWidth * (totalCards - 1);
-        }
-
+        const slotWidth = Math.max(4, availableWidth / Math.max(1, totalCards));
         const isFocus = index === focusIndex;
-        const distance = Math.abs(index - focusIndex);
 
-        const height = isFocus
-          ? 120
-          : Math.max(54, 88 - distance * 2.6);
+        const focusWidth = Math.max(120, Math.min(192, slotWidth * 14));
+        const distance = Math.abs(index - focusIndex);
+        const height = isFocus ? 120 : Math.max(54, 88 - distance * 2.6);
 
         return {
-          width: isFocus ? focusWidth : collapsedWidth,
+          slotWidth,
+          cardWidth: isFocus ? focusWidth : slotWidth,
           height,
           opacity: isFocus ? 1 : Math.max(0.72, 0.9 - distance * 0.02),
           zIndex: isFocus ? 4 : 1
@@ -1774,11 +1762,12 @@
                             <div
                               key={item.week}
                               className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''}`}
+                              style={{ width: `${metrics.slotWidth}px`, height: `${metrics.height}px`, zIndex: metrics.zIndex }}
                             >
                               <button
                                 data-week={item.week}
                                 className={`top-catalog-card ${isCurrent ? 'current' : ''} ${showTitle ? 'show-title' : ''} ${item.pending ? 'pending' : ''}`}
-                                style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity, zIndex: metrics.zIndex }}
+                                style={{ width: `${metrics.cardWidth}px`, height: `${metrics.height}px`, opacity: metrics.opacity, zIndex: metrics.zIndex }}
                                 onClick={() => {
                                   if (item.pending) return;
                                   setHoveredTopWeek(item.week);

@@ -23,6 +23,8 @@
       --font-body: 'Lora', 'Noto Serif SC', Georgia, serif;
       --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
       --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+      --theme-accent-rgb: 217, 119, 87;
+      --theme-accent: rgb(var(--theme-accent-rgb));
     }
 
     * {
@@ -278,14 +280,21 @@
       background: linear-gradient(135deg, rgba(217, 119, 87, 0.2), rgba(62, 95, 138, 0.14));
     }
 
+    @keyframes cardGlowPulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.025); }
+    }
+
     .top-catalog-card.current {
-      border-color: rgba(217, 119, 87, 0.24);
+      border-color: rgba(var(--theme-accent-rgb), 0.24);
       background:
         linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0)) padding-box,
-        linear-gradient(135deg, rgba(217, 119, 87, 0.5), rgba(106, 155, 204, 0.34)) border-box;
+        linear-gradient(135deg, rgba(var(--theme-accent-rgb), 0.52), rgba(106, 155, 204, 0.34)) border-box;
       box-shadow:
         0 6px 12px rgba(20, 20, 19, 0.08),
-        0 16px 28px rgba(20, 20, 19, 0.14);
+        0 16px 28px rgba(20, 20, 19, 0.14),
+        0 0 0 1px rgba(var(--theme-accent-rgb), 0.14) inset;
+      animation: cardGlowPulse 2.8s ease-in-out infinite;
     }
 
     .top-catalog-card.pending {
@@ -319,12 +328,14 @@
       font-weight: 600;
       line-height: 1;
       letter-spacing: 1px;
-      color: rgba(20, 20, 19, 0.72);
-      background: rgba(250, 249, 245, 0.86);
-      border: 1px solid rgba(20, 20, 19, 0.12);
+      color: rgba(var(--theme-accent-rgb), 0.96);
+      background: linear-gradient(180deg, rgba(255, 247, 242, 0.96), rgba(255, 241, 232, 0.92));
+      border: 1px solid rgba(var(--theme-accent-rgb), 0.32);
       border-radius: 999px;
       padding: 4px 8px;
-      box-shadow: 0 4px 10px rgba(20, 20, 19, 0.1);
+      box-shadow:
+        0 4px 10px rgba(20, 20, 19, 0.08),
+        0 0 0 1px rgba(var(--theme-accent-rgb), 0.08) inset;
       backdrop-filter: blur(2px);
       opacity: 0;
       pointer-events: none;

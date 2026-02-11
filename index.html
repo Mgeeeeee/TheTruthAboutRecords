@@ -1172,6 +1172,7 @@
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const [loading, setLoading] = useState(true);
       const [loadError, setLoadError] = useState(null);
+      const [hoveredTopWeek, setHoveredTopWeek] = useState(null);
       const lockedScrollYRef = useRef(0);
 
       useEffect(() => {
@@ -1321,6 +1322,15 @@
         const filename = src.split('/').pop() || '';
         const stem = filename.replace(/\.[^.]+$/, '');
         return `./assets/thumbs/${stem}.webp`;
+      };
+
+      const handleTopCatalogMouseMove = (e) => {
+        const stripEl = e.currentTarget;
+        const cardEl = e.target.closest('.top-catalog-card');
+        if (cardEl && stripEl.contains(cardEl)) {
+          const week = Number(cardEl.dataset.week || 0);
+          if (week) setHoveredTopWeek(week);
+        }
       };
 
       const handleFileUpload = (event) => {
@@ -1502,8 +1512,9 @@
 
       const galleryItems = (data.articles || []).filter(a => a.image);
       const showTopCatalog = viewMode === 'article' && !isMobile();
-      const currentWeekIndex = currentArticle
-        ? data.articles.findIndex(a => a.week === currentArticle.week)
+      const focusedWeek = hoveredTopWeek || currentArticle?.week;
+      const currentWeekIndex = focusedWeek
+        ? data.articles.findIndex(a => a.week === focusedWeek)
         : -1;
       const getTopCardMetrics = (index) => {
         if (index === currentWeekIndex) return { width: 260, height: 124, opacity: 1 };
@@ -1608,13 +1619,18 @@
                 ) : (
                   <article className="article-view">
                     {showTopCatalog && (
-                      <div className="top-catalog-strip">
+                      <div
+                        className="top-catalog-strip"
+                        onMouseMove={handleTopCatalogMouseMove}
+                        onMouseLeave={() => setHoveredTopWeek(null)}
+                      >
                         {(data.articles || []).map((item, index) => {
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
                           return (
                             <button
                               key={item.week}
+                              data-week={item.week}
                               className={`top-catalog-card ${isCurrent ? 'current' : ''}`}
                               style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity }}
                               onClick={() => goToArticle(item.week)}

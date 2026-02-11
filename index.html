@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Poppins:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
   <style>
     :root {
       --color-dark: #141413;
@@ -608,6 +608,12 @@
       color: var(--color-dark);
     }
 
+    /* Performance: skip rendering offscreen long content (supported browsers only) */
+    .article-body > * {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 700px;
+    }
+
     .article-body p {
       margin-bottom: 1.5em;
     }
@@ -690,6 +696,11 @@
 
     /* Mobile responsive */
     @media (max-width: 900px) {
+      /* Performance: avoid expensive patterned background on mobile scrolling */
+      body {
+        background: var(--color-light);
+      }
+
       .sidebar {
         width: 100%;
         position: fixed;
@@ -1056,7 +1067,7 @@
             const src = imageMatch[2];
             return (
               <figure key={idx} className="article-figure">
-                <img className="article-image" src={src} alt={alt} />
+                <img className="article-image" src={src} alt={alt} loading="lazy" decoding="async" />
                 {alt && <figcaption className="article-caption">{alt}</figcaption>}
               </figure>
             );
@@ -1068,7 +1079,7 @@
             const src = `../99-Attachments/flomo-navigator/${filename}`;
             return (
               <figure key={idx} className="article-figure">
-                <img className="article-image" src={src} alt={filename} />
+                <img className="article-image" src={src} alt={filename} loading="lazy" decoding="async" />
                 <figcaption className="article-caption">{filename}</figcaption>
               </figure>
             );
@@ -1150,7 +1161,7 @@
                             goToArticle(article.week, { openSidebar: true });
                           }}
                         >
-                        <img src={article.image} alt={article.title || ''} />
+                        <img src={article.image} alt={article.title || ''} loading="lazy" decoding="async" />
                         <div className="gallery-card-body">
                           <div className="gallery-week">Week {week}</div>
                           <div className="gallery-card-title">{article.title || ''}</div>
@@ -1172,7 +1183,7 @@
                     </header>
 
                       {currentArticle.image && (
-                        <img className="article-cover" src={currentArticle.image} alt={currentArticle.title} />
+                        <img className="article-cover" src={currentArticle.image} alt={currentArticle.title} decoding="async" fetchpriority="high" />
                       )}
 
                       {currentArticle.question && (

@@ -262,6 +262,7 @@
     }
 
     .article-thumb-item:hover,
+    .article-thumb-item.hovered,
     .article-thumb-item.active {
       height: 150px;
       transform: translateY(-2px) scale(1.008);
@@ -319,6 +320,7 @@
     }
 
     .article-thumb-item:hover .article-thumb-meta,
+    .article-thumb-item.hovered .article-thumb-meta,
     .article-thumb-item.active .article-thumb-meta {
       opacity: 1;
       transform: translateY(0);
@@ -1093,6 +1095,7 @@
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const [loading, setLoading] = useState(true);
       const [loadError, setLoadError] = useState(null);
+      const [hoveredWeek, setHoveredWeek] = useState(null);
       const lockedScrollYRef = useRef(0);
 
       useEffect(() => {
@@ -1242,6 +1245,15 @@
         const filename = src.split('/').pop() || '';
         const stem = filename.replace(/\.[^.]+$/, '');
         return `./assets/thumbs/${stem}.webp`;
+      };
+
+      const handleCatalogMouseMove = (e) => {
+        const listEl = e.currentTarget;
+        const itemEl = e.target.closest('.article-thumb-item');
+        if (itemEl && listEl.contains(itemEl)) {
+          const week = Number(itemEl.dataset.week || 0);
+          if (week) setHoveredWeek(week);
+        }
       };
 
       const handleFileUpload = (event) => {
@@ -1454,14 +1466,20 @@
               </div>
             </div>
 
-            <div className={`article-list ${useImageCardCatalog ? 'image-catalog' : ''}`}>
+            <div
+              className={`article-list ${useImageCardCatalog ? 'image-catalog' : ''}`}
+              onMouseMove={useImageCardCatalog ? handleCatalogMouseMove : undefined}
+              onMouseLeave={useImageCardCatalog ? () => setHoveredWeek(null) : undefined}
+            >
               {useImageCardCatalog ? (
                 (data.articles || []).map((item) => {
                   const isActive = currentArticle?.week === item.week;
+                  const isHovered = hoveredWeek === item.week;
                   return (
                     <div
                       key={item.week}
-                      className={`article-thumb-item ${isActive ? 'active' : ''}`}
+                      data-week={item.week}
+                      className={`article-thumb-item ${isActive ? 'active' : ''} ${isHovered ? 'hovered' : ''}`}
                       onClick={() => goToArticle(item.week)}
                     >
                       <div className="article-thumb-media">

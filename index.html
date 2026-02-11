@@ -246,6 +246,94 @@
       font-style: italic;
     }
 
+    .top-catalog-strip {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 14px;
+      margin-bottom: 20px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .top-catalog-strip::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+
+    .top-catalog-card {
+      position: relative;
+      flex: 0 0 auto;
+      border: 1px solid rgba(20, 20, 19, 0.16);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.75);
+      overflow: hidden;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-radius 0.2s ease, opacity 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .top-catalog-card img,
+    .top-catalog-fallback {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .top-catalog-fallback {
+      background: linear-gradient(135deg, rgba(217, 119, 87, 0.2), rgba(62, 95, 138, 0.14));
+    }
+
+    .top-catalog-card.current {
+      border-radius: 16px;
+      border-color: rgba(217, 119, 87, 0.42);
+      box-shadow: 0 14px 28px rgba(20, 20, 19, 0.16);
+    }
+
+    .top-catalog-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(20, 20, 19, 0.15);
+      opacity: 1 !important;
+    }
+
+    .top-catalog-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 16px 12px 10px;
+      background: linear-gradient(to top, rgba(20, 20, 19, 0.72), rgba(20, 20, 19, 0));
+      opacity: 0;
+      transition: opacity 0.18s ease;
+      color: #fff;
+      pointer-events: none;
+    }
+
+    .top-catalog-card.current .top-catalog-overlay,
+    .top-catalog-card:hover .top-catalog-overlay {
+      opacity: 1;
+    }
+
+    .top-catalog-week {
+      font-family: var(--font-heading);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.82;
+    }
+
+    .top-catalog-title {
+      margin-top: 3px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
     .article-thumb-item {
       flex-shrink: 0;
       height: 12px;
@@ -1040,6 +1128,9 @@
     }
 
     @media (min-width: 901px) {
+      .sidebar.desktop-hidden {
+        display: none;
+      }
       /* Desktop: cover is moved to sidebar wheel, keep article content focused */
       .main-content.article-mode .article-cover {
         display: none;
@@ -1063,6 +1154,8 @@
       .mobile-tabbar,
       .mobile-sheet-overlay,
       .mobile-sheet,
+      .top-catalog-card,
+      .top-catalog-overlay,
       .article-thumb-item,
       .article-thumb-media,
       .article-thumb-meta,
@@ -1095,7 +1188,6 @@
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
       const [loading, setLoading] = useState(true);
       const [loadError, setLoadError] = useState(null);
-      const [hoveredWeek, setHoveredWeek] = useState(null);
       const lockedScrollYRef = useRef(0);
 
       useEffect(() => {
@@ -1245,15 +1337,6 @@
         const filename = src.split('/').pop() || '';
         const stem = filename.replace(/\.[^.]+$/, '');
         return `./assets/thumbs/${stem}.webp`;
-      };
-
-      const handleCatalogMouseMove = (e) => {
-        const listEl = e.currentTarget;
-        const itemEl = e.target.closest('.article-thumb-item');
-        if (itemEl && listEl.contains(itemEl)) {
-          const week = Number(itemEl.dataset.week || 0);
-          if (week) setHoveredWeek(week);
-        }
       };
 
       const handleFileUpload = (event) => {
@@ -1434,10 +1517,22 @@
       };
 
       const galleryItems = (data.articles || []).filter(a => a.image);
-      const useImageCardCatalog = viewMode === 'article' && !isMobile();
+      const showTopCatalog = viewMode === 'article' && !isMobile();
+      const currentWeekIndex = currentArticle
+        ? data.articles.findIndex(a => a.week === currentArticle.week)
+        : -1;
+      const getTopCardMetrics = (index) => {
+        if (index === currentWeekIndex) return { width: 248, height: 126, opacity: 1 };
+        const distance = Math.abs(index - currentWeekIndex);
+        return {
+          width: Math.max(14, 28 - distance),
+          height: Math.max(34, 98 - distance * 7),
+          opacity: Math.max(0.42, 0.92 - distance * 0.07)
+        };
+      };
       return (
         <div className="app">
-          <aside className={`sidebar ${sidebarOpen ? 'expanded' : 'collapsed'}`}>
+          <aside className={`sidebar ${sidebarOpen ? 'expanded' : 'collapsed'} ${showTopCatalog ? 'desktop-hidden' : ''}`}>
             <div className="sidebar-header">
               <div className="sidebar-title-row">
                 <h1 className="book-title" onClick={goHome} style={{ cursor: 'pointer' }}>
@@ -1466,61 +1561,23 @@
               </div>
             </div>
 
-            <div
-              className={`article-list ${useImageCardCatalog ? 'image-catalog' : ''}`}
-              onMouseMove={useImageCardCatalog ? handleCatalogMouseMove : undefined}
-              onMouseLeave={useImageCardCatalog ? () => setHoveredWeek(null) : undefined}
-            >
-              {useImageCardCatalog ? (
-                (data.articles || []).map((item) => {
-                  const isActive = currentArticle?.week === item.week;
-                  const isHovered = hoveredWeek === item.week;
-                  return (
-                    <div
-                      key={item.week}
-                      data-week={item.week}
-                      className={`article-thumb-item ${isActive ? 'active' : ''} ${isHovered ? 'hovered' : ''}`}
-                      onClick={() => goToArticle(item.week)}
-                    >
-                      <div className="article-thumb-media">
-                        {item.image ? (
-                          <img
-                            className="article-thumb-image"
-                            src={getThumbSrc(item.image)}
-                            alt={item.title || ''}
-                            loading="lazy"
-                            decoding="async"
-                            onError={(e) => { if (e.currentTarget.src !== item.image) e.currentTarget.src = item.image; }}
-                          />
-                        ) : (
-                          <div className="article-thumb-fallback" />
-                        )}
-                      </div>
-                      <div className="article-thumb-meta">
-                        <div className="article-thumb-week">Week {String(item.week).padStart(2, '0')}</div>
-                        <div className="article-thumb-title">{item.title || ''}</div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                allWeeks.map((item) => (
-                  <div
-                    key={item.week}
-                    className={`article-item ${item.pending ? 'pending' : ''} ${currentArticle?.week === item.week ? 'active' : ''}`}
-                    onClick={() => !item.pending && goToArticle(item.week)}
-                  >
-                    <span className="week-number">{String(item.week).padStart(2, '0')}</span>
-                    <span className="article-title-text">
-                      {item.pending ? '待续' : item.title}
-                    </span>
-                  </div>
-                ))
-              )}
+            <div className="article-list">
+              {allWeeks.map((item) => (
+                <div
+                  key={item.week}
+                  className={`article-item ${item.pending ? 'pending' : ''} ${currentArticle?.week === item.week ? 'active' : ''}`}
+                  onClick={() => !item.pending && goToArticle(item.week)}
+                >
+                  <span className="week-number">{String(item.week).padStart(2, '0')}</span>
+                  <span className="article-title-text">
+                    {item.pending ? '待续' : item.title}
+                  </span>
+                </div>
+              ))}
             </div>
           </aside>
 
-          <main className={`main-content ${viewMode === 'gallery' ? 'gallery-mode' : 'article-mode'} ${sidebarOpen ? '' : 'full-width'}`}>
+          <main className={`main-content ${viewMode === 'gallery' ? 'gallery-mode' : 'article-mode'} ${(sidebarOpen && !showTopCatalog) ? '' : 'full-width'}`}>
             <div className="content-shell">
               {viewMode === 'gallery' ? (
                 <section>
@@ -1566,6 +1623,39 @@
                   <div className="article-placeholder">请选择一篇问答开始阅读。</div>
                 ) : (
                   <article className="article-view">
+                    {showTopCatalog && (
+                      <div className="top-catalog-strip">
+                        {(data.articles || []).map((item, index) => {
+                          const metrics = getTopCardMetrics(index);
+                          const isCurrent = currentArticle?.week === item.week;
+                          return (
+                            <button
+                              key={item.week}
+                              className={`top-catalog-card ${isCurrent ? 'current' : ''}`}
+                              style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity }}
+                              onClick={() => goToArticle(item.week)}
+                            >
+                              {item.image ? (
+                                <img
+                                  src={getThumbSrc(item.image)}
+                                  alt={item.title || ''}
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={(e) => { if (e.currentTarget.src !== item.image) e.currentTarget.src = item.image; }}
+                                />
+                              ) : (
+                                <div className="top-catalog-fallback" />
+                              )}
+                              <div className="top-catalog-overlay">
+                                <div className="top-catalog-week">Week {String(item.week).padStart(2, '0')}</div>
+                                <div className="top-catalog-title">{item.title || ''}</div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     <header className="article-header">
                       <div className="article-week">Week {String(currentArticle.week).padStart(2, '0')}</div>
                       <h1 className="article-title">{currentArticle.title}</h1>

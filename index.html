@@ -236,7 +236,8 @@
       align-items: flex-start;
       gap: 8px;
       overflow-x: auto;
-      padding: 6px 2px 16px;
+      height: 132px;
+      padding: 6px 2px 6px;
       margin-bottom: 20px;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -252,12 +253,12 @@
       position: relative;
       flex: 0 0 auto;
       border: 1px solid rgba(20, 20, 19, 0.16);
-      border-radius: 8px;
+      border-radius: 14px;
       background: rgba(255,255,255,0.75);
       overflow: hidden;
       padding: 0;
       cursor: pointer;
-      transition: width 0.2s ease, height 0.2s ease, transform 0.16s ease, border-radius 0.2s ease, border-color 0.2s ease;
+      transition: width 0.2s ease, height 0.2s ease, transform 0.16s ease, border-color 0.2s ease, box-shadow 0.16s ease;
       will-change: width, height, transform;
       -webkit-tap-highlight-color: transparent;
     }
@@ -275,9 +276,13 @@
     }
 
     .top-catalog-card.current {
-      border-radius: 16px;
       border-color: rgba(217, 119, 87, 0.42);
       box-shadow: 0 8px 18px rgba(20, 20, 19, 0.14);
+    }
+
+    .top-catalog-card.pending {
+      border-color: rgba(20, 20, 19, 0.12);
+      background: rgba(236, 235, 228, 0.9);
     }
 
     .top-catalog-card:hover {
@@ -299,8 +304,12 @@
       pointer-events: none;
     }
 
-    .top-catalog-card.current .top-catalog-overlay {
+    .top-catalog-card.show-title .top-catalog-overlay {
       opacity: 1;
+    }
+
+    .top-catalog-card.pending .top-catalog-overlay {
+      opacity: 0 !important;
     }
 
     .top-catalog-week {
@@ -316,6 +325,19 @@
       font-size: 13px;
       font-weight: 600;
       line-height: 1.25;
+    }
+
+    .top-catalog-pending-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 12px;
+      color: rgba(20, 20, 19, 0.58);
+      letter-spacing: 1px;
+      pointer-events: none;
     }
 
     .article-thumb-item {
@@ -1514,7 +1536,7 @@
       const showTopCatalog = viewMode === 'article' && !isMobile();
       const focusedWeek = hoveredTopWeek || currentArticle?.week;
       const currentWeekIndex = focusedWeek
-        ? data.articles.findIndex(a => a.week === focusedWeek)
+        ? allWeeks.findIndex(a => a.week === focusedWeek)
         : -1;
       const getTopCardMetrics = (index) => {
         if (index === currentWeekIndex) return { width: 260, height: 124, opacity: 1 };
@@ -1624,18 +1646,24 @@
                         onMouseMove={handleTopCatalogMouseMove}
                         onMouseLeave={() => setHoveredTopWeek(null)}
                       >
-                        {(data.articles || []).map((item, index) => {
+                        {allWeeks.map((item, index) => {
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
+                          const showTitle = isCurrent && !hoveredTopWeek;
                           return (
                             <button
                               key={item.week}
                               data-week={item.week}
-                              className={`top-catalog-card ${isCurrent ? 'current' : ''}`}
+                              className={`top-catalog-card ${isCurrent ? 'current' : ''} ${showTitle ? 'show-title' : ''} ${item.pending ? 'pending' : ''}`}
                               style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity }}
-                              onClick={() => goToArticle(item.week)}
+                              onClick={() => {
+                                if (item.pending) return;
+                                goToArticle(item.week);
+                              }}
                             >
-                              {item.image ? (
+                              {item.pending ? (
+                                <div className="top-catalog-pending-label">静待花开</div>
+                              ) : item.image ? (
                                 <img
                                   src={getThumbSrc(item.image)}
                                   alt={item.title || ''}
@@ -1648,7 +1676,7 @@
                               )}
                               <div className="top-catalog-overlay">
                                 <div className="top-catalog-week">Week {String(item.week).padStart(2, '0')}</div>
-                                <div className="top-catalog-title">{item.title || ''}</div>
+                                <div className="top-catalog-title">{item.pending ? '静待花开' : (item.title || '')}</div>
                               </div>
                             </button>
                           );

@@ -291,6 +291,36 @@
       box-shadow: 0 6px 12px rgba(20, 20, 19, 0.12);
     }
 
+    .top-catalog-item {
+      position: relative;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .top-catalog-hover-index {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-2px);
+      font-family: var(--font-heading);
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: 0.8px;
+      color: rgba(20, 20, 19, 0.62);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.16s ease, transform 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .top-catalog-item.show-hover-index .top-catalog-hover-index {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+
     .top-catalog-overlay {
       position: absolute;
       inset: 0;
@@ -1710,35 +1740,41 @@
                           const metrics = getTopCardMetrics(index);
                           const isCurrent = currentArticle?.week === item.week;
                           const showTitle = isCurrent && !hoveredTopWeek;
+                          const showHoverIndex = hoveredTopWeek === item.week;
                           return (
-                            <button
+                            <div
                               key={item.week}
-                              data-week={item.week}
-                              className={`top-catalog-card ${isCurrent ? 'current' : ''} ${showTitle ? 'show-title' : ''} ${item.pending ? 'pending' : ''}`}
-                              style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity }}
-                              onClick={() => {
-                                if (item.pending) return;
-                                setHoveredTopWeek(item.week);
-                                goToArticle(item.week);
-                              }}
+                              className={`top-catalog-item ${showHoverIndex ? 'show-hover-index' : ''}`}
                             >
-                              {item.pending ? (
-                                <div className="top-catalog-pending-label">静待花开</div>
-                              ) : item.image ? (
-                                <img
-                                  src={getThumbSrc(item.image)}
-                                  alt={item.title || ''}
-                                  loading="lazy"
-                                  decoding="async"
-                                  onError={(e) => { if (e.currentTarget.src !== item.image) e.currentTarget.src = item.image; }}
-                                />
-                              ) : (
-                                <div className="top-catalog-fallback" />
-                              )}
-                              <div className="top-catalog-overlay">
-                                <div className="top-catalog-line">{`WEEK ${String(item.week).padStart(2, '0')}｜${item.pending ? '静待花开' : (item.title || '')}`}</div>
-                              </div>
-                            </button>
+                              <button
+                                data-week={item.week}
+                                className={`top-catalog-card ${isCurrent ? 'current' : ''} ${showTitle ? 'show-title' : ''} ${item.pending ? 'pending' : ''}`}
+                                style={{ width: `${metrics.width}px`, height: `${metrics.height}px`, opacity: metrics.opacity }}
+                                onClick={() => {
+                                  if (item.pending) return;
+                                  setHoveredTopWeek(item.week);
+                                  goToArticle(item.week);
+                                }}
+                              >
+                                {item.pending ? (
+                                  <div className="top-catalog-pending-label">静待花开</div>
+                                ) : item.image ? (
+                                  <img
+                                    src={getThumbSrc(item.image)}
+                                    alt={item.title || ''}
+                                    loading="lazy"
+                                    decoding="async"
+                                    onError={(e) => { if (e.currentTarget.src !== item.image) e.currentTarget.src = item.image; }}
+                                  />
+                                ) : (
+                                  <div className="top-catalog-fallback" />
+                                )}
+                                <div className="top-catalog-overlay">
+                                  <div className="top-catalog-line">{`WEEK ${String(item.week).padStart(2, '0')}｜${item.pending ? '静待花开' : (item.title || '')}`}</div>
+                                </div>
+                              </button>
+                              <div className="top-catalog-hover-index">{String(item.week).padStart(2, '0')}</div>
+                            </div>
                           );
                         })}
                       </div>

@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ARTICLES_JSON = ROOT / "articles.json"
 INDEX_HTML = ROOT / "index.html"
+WARNED_NO_CWEBP = False
 
 
 def die(msg: str, code: int = 1) -> None:
@@ -43,9 +45,9 @@ def run(cmd: list[str]) -> None:
 
 
 def parse_week_filename(path: Path) -> tuple[int, str]:
-    m = re.match(r"^Week(\d{2})丨(.+)\.md$", path.name)
+    m = re.match(r"^Week(\d{2})(?:丨|\||_)(.+)\.md$", path.name)
     if not m:
-        die(f"Unexpected source filename: {path.name} (expected WeekXX丨标题.md)")
+        die(f"Unexpected source filename: {path.name} (expected WeekXX丨标题.md or WeekXX_标题.md)")
     return int(m.group(1)), m.group(2)
 
 
@@ -98,9 +100,15 @@ def resolve_local_path(path_str: str) -> Path | None:
 
 
 def ensure_webp(src: Path, quality: int) -> Path:
+    global WARNED_NO_CWEBP
     out = src.with_suffix(".webp")
     if out.exists():
         return out
+    if shutil.which("cwebp") is None:
+        if not WARNED_NO_CWEBP:
+            print("WARN: cwebp not found, keep original image format", file=sys.stderr)
+            WARNED_NO_CWEBP = True
+        return src
     out.parent.mkdir(parents=True, exist_ok=True)
     run(
         [
@@ -121,12 +129,20 @@ def ensure_webp(src: Path, quality: int) -> Path:
 
 
 def pick_cover_asset(week: int, title: str) -> Path:
-    stem = f"Week{week:02d}丨{title}"
-    for ext in (".webp", ".png", ".jpg", ".jpeg"):
-        p = ROOT / "assets" / f"{stem}{ext}"
-        if p.exists():
-            return p
-    die(f"Cannot find cover image in assets/ for {stem} (tried webp/png/jpg/jpeg)")
+    stems = [
+        f"Week{week:02d}丨{title}",
+        f"Week{week:02d}|{title}",
+        f"Week{week:02d}_{title}",
+    ]
+    for stem in stems:
+        for ext in (".webp", ".png", ".jpg", ".jpeg"):
+            p = ROOT / "assets" / f"{stem}{ext}"
+            if p.exists():
+                return p
+    die(
+        f"Cannot find cover image in assets/ for Week{week:02d} + {title} "
+        "(tried separators: 丨, |, _; extensions: webp/png/jpg/jpeg)"
+    )
     raise AssertionError  # unreachable
 
 
@@ -239,4 +255,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

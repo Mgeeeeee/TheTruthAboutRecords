@@ -10,3 +10,20 @@ statuses/
 config.json
 views.json
 events.jsonl
+
+# Local-only AI helper files
+AGENTS.md
+配色.png
+
+# Local authoring sources not needed for the public site
+SOP.md
+scripts/
+source/
+
+# Keep only web assets used by the published site
+assets/*.png
+assets/*.jpg
+assets/*.jpeg
+assets/其他图/*.png
+assets/其他图/*.jpg
+assets/其他图/*.jpeg

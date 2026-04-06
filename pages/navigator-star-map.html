@@ -58,6 +58,10 @@
                 width: 100vw;
                 height: 100vh;
             }
+            .viewer.tooltip-locked svg {
+                pointer-events: none;
+                cursor: default;
+            }
             svg {
                 position: relative;
                 z-index: 1;
@@ -2977,9 +2981,17 @@
             starNodes.forEach((n) => {
                 weekNodeId[n.week] = n.id;
             });
+            function isTouchUI() {
+                if (!(window.matchMedia instanceof Function)) return false;
+                return (
+                    window.matchMedia("(max-width: 900px)").matches ||
+                    window.matchMedia("(pointer: coarse)").matches
+                );
+            }
             function setTooltipState(visible, pinned) {
                 tp.classList.toggle("visible", visible);
                 tp.classList.toggle("pinned", !!pinned);
+                vw.classList.toggle("tooltip-locked", !!pinned && visible && isTouchUI());
             }
             function renderTooltip(d, e, { pinned = false } = {}) {
                 tp.innerHTML = tHtml(d, { pinned });

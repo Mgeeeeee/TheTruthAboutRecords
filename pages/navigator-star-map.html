@@ -3254,12 +3254,14 @@
                 }
             });
             document.addEventListener("click", (e) => {
+                if (tp.classList.contains("mobile-sheet")) return;
                 if (!(e.target instanceof Element)) return;
                 if (e.target.closest(".orbit-title")) return;
                 if (e.target.closest("#tooltip")) return;
                 clearPinned();
             });
-            tpBackdrop.addEventListener("click", () => {
+            tpBackdrop.addEventListener("click", (e) => {
+                e.stopPropagation();
                 clearPinned();
             });
 

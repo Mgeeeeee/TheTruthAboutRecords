@@ -199,6 +199,20 @@
             .tooltip.pinned {
                 pointer-events: auto;
             }
+            .tooltip-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 95;
+                background: rgba(6, 8, 16, 0.48);
+                backdrop-filter: blur(3px);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.22s ease;
+            }
+            .tooltip-backdrop.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
             .tooltip-head {
                 display: flex;
                 align-items: flex-start;
@@ -481,6 +495,21 @@
                 }
             }
             @media (max-width: 900px) {
+                .tooltip.mobile-sheet {
+                    left: 12px !important;
+                    right: 12px !important;
+                    bottom: calc(12px + env(safe-area-inset-bottom));
+                    top: auto !important;
+                    width: auto;
+                    max-height: min(72vh, 760px);
+                    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+                    border-radius: 18px;
+                    transform: translateY(18px);
+                    box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.32);
+                }
+                .tooltip.mobile-sheet.visible {
+                    transform: translateY(0);
+                }
                 .title-bar h1 {
                     font-size: 19px;
                     letter-spacing: 0.24em;
@@ -699,6 +728,7 @@
             </button>
         </div>
         <div class="viewer" id="viewer"><svg id="graph"></svg></div>
+        <div class="tooltip-backdrop" id="tooltip-backdrop"></div>
         <div class="tooltip" id="tooltip"></div>
         <div class="link-tooltip" id="ltip"></div>
         <div class="legend" id="legend"></div>
@@ -1056,58 +1086,59 @@
                 },
             };
             const tooltipThumbByWeek = {
-                "1": "../assets/thumbs/Week01丨边界.webp",
-                "2": "../assets/thumbs/Week02丨消化.webp",
-                "3": "../assets/thumbs/Week03丨真我.webp",
-                "4": "../assets/thumbs/Week04丨回响.webp",
-                "5": "../assets/thumbs/Week05丨脉络.webp",
-                "6": "../assets/thumbs/Week06丨发问.webp",
-                "7": "../assets/thumbs/Week07丨新歌.webp",
-                "8": "../assets/thumbs/Week08丨现炒.webp",
-                "9": "../assets/thumbs/Week09丨躲猫猫.webp",
-                "10": "../assets/thumbs/Week10丨点火.webp",
-                "11": "../assets/thumbs/Week11丨着陆.webp",
-                "12": "../assets/thumbs/Week12丨撞墙的风.webp",
-                "13": "../assets/thumbs/Week13丨走神.webp",
-                "14": "../assets/thumbs/Week14丨下车.webp",
-                "15": "../assets/thumbs/Week15丨镜头.webp",
-                "16": "../assets/thumbs/Week16丨身心.webp",
-                "17": "../assets/thumbs/Week17丨间隙.webp",
-                "18": "../assets/thumbs/Week18丨箭羽.webp",
-                "19": "../assets/thumbs/Week19丨历史.webp",
-                "20": "../assets/thumbs/Week20丨目的.webp",
-                "21": "../assets/thumbs/Week21丨故事.webp",
-                "22": "../assets/thumbs/Week22丨弹窗.webp",
-                "23": "../assets/thumbs/Week23丨解密.webp",
-                "24": "../assets/thumbs/Week24丨自然.webp",
-                "25": "../assets/thumbs/Week25丨礼物.webp",
-                "26": "../assets/thumbs/Week26丨去哪.webp",
-                "27": "../assets/thumbs/Week27丨遇见.webp",
-                "28": "../assets/thumbs/Week28丨自己.webp",
-                "29": "../assets/thumbs/Week29丨喜爱.webp",
-                "30": "../assets/thumbs/Week30丨证人.webp",
-                "31": "../assets/thumbs/Week31丨休息.webp",
-                "32": "../assets/thumbs/Week32丨点赞.webp",
-                "33": "../assets/thumbs/Week33丨纯粹.webp",
-                "34": "../assets/thumbs/Week34丨浪费.webp",
-                "35": "../assets/thumbs/Week35丨倾听.webp",
-                "36": "../assets/thumbs/Week36丨咒语.webp",
-                "37": "../assets/thumbs/Week37丨忙碌.webp",
-                "38": "../assets/thumbs/Week38丨承认.webp",
-                "39": "../assets/thumbs/Week39丨暂停.webp",
-                "40": "../assets/thumbs/Week40_见光.webp",
-                "41": "../assets/thumbs/Week41_心亡.webp",
-                "42": "../assets/thumbs/Week42_如实.webp",
-                "43": "../assets/thumbs/Week43_陪伴.webp",
-                "44": "../assets/thumbs/Week44_乌云.webp",
-                "45": "../assets/thumbs/Week45_星轨.webp",
+                1: "../assets/thumbs/Week01丨边界.webp",
+                2: "../assets/thumbs/Week02丨消化.webp",
+                3: "../assets/thumbs/Week03丨真我.webp",
+                4: "../assets/thumbs/Week04丨回响.webp",
+                5: "../assets/thumbs/Week05丨脉络.webp",
+                6: "../assets/thumbs/Week06丨发问.webp",
+                7: "../assets/thumbs/Week07丨新歌.webp",
+                8: "../assets/thumbs/Week08丨现炒.webp",
+                9: "../assets/thumbs/Week09丨躲猫猫.webp",
+                10: "../assets/thumbs/Week10丨点火.webp",
+                11: "../assets/thumbs/Week11丨着陆.webp",
+                12: "../assets/thumbs/Week12丨撞墙的风.webp",
+                13: "../assets/thumbs/Week13丨走神.webp",
+                14: "../assets/thumbs/Week14丨下车.webp",
+                15: "../assets/thumbs/Week15丨镜头.webp",
+                16: "../assets/thumbs/Week16丨身心.webp",
+                17: "../assets/thumbs/Week17丨间隙.webp",
+                18: "../assets/thumbs/Week18丨箭羽.webp",
+                19: "../assets/thumbs/Week19丨历史.webp",
+                20: "../assets/thumbs/Week20丨目的.webp",
+                21: "../assets/thumbs/Week21丨故事.webp",
+                22: "../assets/thumbs/Week22丨弹窗.webp",
+                23: "../assets/thumbs/Week23丨解密.webp",
+                24: "../assets/thumbs/Week24丨自然.webp",
+                25: "../assets/thumbs/Week25丨礼物.webp",
+                26: "../assets/thumbs/Week26丨去哪.webp",
+                27: "../assets/thumbs/Week27丨遇见.webp",
+                28: "../assets/thumbs/Week28丨自己.webp",
+                29: "../assets/thumbs/Week29丨喜爱.webp",
+                30: "../assets/thumbs/Week30丨证人.webp",
+                31: "../assets/thumbs/Week31丨休息.webp",
+                32: "../assets/thumbs/Week32丨点赞.webp",
+                33: "../assets/thumbs/Week33丨纯粹.webp",
+                34: "../assets/thumbs/Week34丨浪费.webp",
+                35: "../assets/thumbs/Week35丨倾听.webp",
+                36: "../assets/thumbs/Week36丨咒语.webp",
+                37: "../assets/thumbs/Week37丨忙碌.webp",
+                38: "../assets/thumbs/Week38丨承认.webp",
+                39: "../assets/thumbs/Week39丨暂停.webp",
+                40: "../assets/thumbs/Week40_见光.webp",
+                41: "../assets/thumbs/Week41_心亡.webp",
+                42: "../assets/thumbs/Week42_如实.webp",
+                43: "../assets/thumbs/Week43_陪伴.webp",
+                44: "../assets/thumbs/Week44_乌云.webp",
+                45: "../assets/thumbs/Week45_星轨.webp",
             };
             function guessTooltipImageCandidates(d, raw) {
                 const candidates = [];
                 const mapped = tooltipThumbByWeek[String(d.week)] || "";
                 if (mapped) candidates.push(mapped);
                 const rawImage = raw.imagePath || "";
-                if (rawImage && !candidates.includes(rawImage)) candidates.push(rawImage);
+                if (rawImage && !candidates.includes(rawImage))
+                    candidates.push(rawImage);
                 return candidates.filter(Boolean);
             }
             function handleTooltipCoverError(img) {
@@ -2402,6 +2433,7 @@
 
             // SVG
             const vw = document.getElementById("viewer"),
+                tpBackdrop = document.getElementById("tooltip-backdrop"),
                 tp = document.getElementById("tooltip"),
                 lt = document.getElementById("ltip"),
                 lg = document.getElementById("legend");
@@ -2951,9 +2983,8 @@
                     d.answer_essence ||
                     d.metaphor ||
                     "";
-                const [primaryImage = "", ...fallbackImages] = imageCandidates.map(
-                    encodeTooltipSrc,
-                );
+                const [primaryImage = "", ...fallbackImages] =
+                    imageCandidates.map(encodeTooltipSrc);
                 const coverHtml = primaryImage
                     ? `<div class="cover-wrap"><img class="cover" src="${esc(primaryImage)}" alt="${esc(title)}"${
                           fallbackImages.length
@@ -2962,7 +2993,7 @@
                       }></div>`
                     : "";
                 const bodyClass = primaryImage ? "body has-cover" : "body";
-                return `<div class="tooltip-head"><div><h2 style="color:${d.color}">${esc(title)}</h2><div class="week-num">Week ${d.week} · ${esc(d.cluster_label || "")} · ${esc(d.created_at || "")}</div></div>${pinned ? `<button type="button" class="tooltip-close" data-role="tooltip-close" aria-label="关闭">×</button>` : ""}</div>${question ? `<div class="question">Q: ${esc(question)}</div>` : ""}${coverHtml}${body ? `<div class="${bodyClass}">${esc(body)}</div>` : ""}${summary ? `<div class="summary">${esc(summary)}</div>` : ""}`;
+                return `<div class="tooltip-head"><div><h2 style="color:${d.color}">${esc(title)}</h2><div class="week-num">Week ${d.week} · ${esc(d.cluster_label || "")} · ${esc(d.created_at || "")}</div></div>${pinned ? `<button type="button" class="tooltip-close" data-role="tooltip-close" aria-label="关闭">×</button>` : ""}</div>${question ? `<div class="question">${esc(question)}</div>` : ""}${coverHtml}${body ? `<div class="${bodyClass}">${esc(body)}</div>` : ""}${summary ? `<div class="summary">${esc(summary)}</div>` : ""}`;
             }
             function mvTip(el, e) {
                 const g = 18,
@@ -2993,14 +3024,21 @@
                 );
             }
             function setTooltipState(visible, pinned) {
+                const mobileSheet = visible && isTouchUI();
                 tp.classList.toggle("visible", visible);
-                tp.classList.toggle("pinned", !!pinned);
-                vw.classList.toggle("tooltip-locked", !!pinned && visible && isTouchUI());
+                tp.classList.toggle("pinned", !!pinned || mobileSheet);
+                tp.classList.toggle("mobile-sheet", mobileSheet);
+                tpBackdrop.classList.toggle("visible", mobileSheet);
+                vw.classList.toggle("tooltip-locked", mobileSheet);
+                if (mobileSheet) {
+                    tp.style.left = "";
+                    tp.style.top = "";
+                }
             }
             function renderTooltip(d, e, { pinned = false } = {}) {
                 tp.innerHTML = tHtml(d, { pinned });
                 setTooltipState(true, pinned);
-                if (e) mvTip(tp, e);
+                if (e && !isTouchUI()) mvTip(tp, e);
             }
             function pinNode(nid, { showTooltip = false, event = null } = {}) {
                 if (!nid) return;
@@ -3221,6 +3259,9 @@
                 if (e.target.closest("#tooltip")) return;
                 clearPinned();
             });
+            tpBackdrop.addEventListener("click", () => {
+                clearPinned();
+            });
 
             // Legend
             // Legend (no "全部" — clicking active cluster deselects to show all)
@@ -3280,14 +3321,18 @@
             });
             bS("sfd", "vfd", "flowDur", () => applyConstellFlowVars());
             bS("sfo", "vfo", "flowOffset", () => applyConstellFlowVars());
-            document.getElementById("pure-mode-btn").addEventListener("click", () => {
-                P.pure = !P.pure;
-                renderPureMode();
-            });
-            document.getElementById("global-mst-btn").addEventListener("click", () => {
-                P.globalMST = !P.globalMST;
-                renderGlobalMSTMode();
-            });
+            document
+                .getElementById("pure-mode-btn")
+                .addEventListener("click", () => {
+                    P.pure = !P.pure;
+                    renderPureMode();
+                });
+            document
+                .getElementById("global-mst-btn")
+                .addEventListener("click", () => {
+                    P.globalMST = !P.globalMST;
+                    renderGlobalMSTMode();
+                });
             renderPureMode();
             renderGlobalMSTMode();
         </script>

@@ -240,6 +240,26 @@
                 white-space: pre-wrap;
                 color: rgba(255, 255, 255, 0.76);
             }
+            .tooltip .body.has-cover {
+                margin-top: 12px;
+                padding-top: 0;
+                border-top: 0;
+            }
+            .tooltip .cover-wrap {
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+            }
+            .tooltip .cover {
+                display: block;
+                width: 100%;
+                height: auto;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                background: rgba(255, 255, 255, 0.03);
+                box-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+                object-fit: cover;
+            }
             .tooltip .summary {
                 margin-top: 10px;
                 padding-top: 8px;
@@ -1024,6 +1044,80 @@
                     body: "记不清回答上的细节，但总有些东西在悄然变化。\n\n发现或许是一个动态的过程，每一次回看都会有新的发现。\n\n每个问题都是一个锚点，一路走来，构筑星图，涌现星轨。",
                 },
             };
+            const tooltipThumbByWeek = {
+                "1": "../assets/thumbs/Week01丨边界.webp",
+                "2": "../assets/thumbs/Week02丨消化.webp",
+                "3": "../assets/thumbs/Week03丨真我.webp",
+                "4": "../assets/thumbs/Week04丨回响.webp",
+                "5": "../assets/thumbs/Week05丨脉络.webp",
+                "6": "../assets/thumbs/Week06丨发问.webp",
+                "7": "../assets/thumbs/Week07丨新歌.webp",
+                "8": "../assets/thumbs/Week08丨现炒.webp",
+                "9": "../assets/thumbs/Week09丨躲猫猫.webp",
+                "10": "../assets/thumbs/Week10丨点火.webp",
+                "11": "../assets/thumbs/Week11丨着陆.webp",
+                "12": "../assets/thumbs/Week12丨撞墙的风.webp",
+                "13": "../assets/thumbs/Week13丨走神.webp",
+                "14": "../assets/thumbs/Week14丨下车.webp",
+                "15": "../assets/thumbs/Week15丨镜头.webp",
+                "16": "../assets/thumbs/Week16丨身心.webp",
+                "17": "../assets/thumbs/Week17丨间隙.webp",
+                "18": "../assets/thumbs/Week18丨箭羽.webp",
+                "19": "../assets/thumbs/Week19丨历史.webp",
+                "20": "../assets/thumbs/Week20丨目的.webp",
+                "21": "../assets/thumbs/Week21丨故事.webp",
+                "22": "../assets/thumbs/Week22丨弹窗.webp",
+                "23": "../assets/thumbs/Week23丨解密.webp",
+                "24": "../assets/thumbs/Week24丨自然.webp",
+                "25": "../assets/thumbs/Week25丨礼物.webp",
+                "26": "../assets/thumbs/Week26丨去哪.webp",
+                "27": "../assets/thumbs/Week27丨遇见.webp",
+                "28": "../assets/thumbs/Week28丨自己.webp",
+                "29": "../assets/thumbs/Week29丨喜爱.webp",
+                "30": "../assets/thumbs/Week30丨证人.webp",
+                "31": "../assets/thumbs/Week31丨休息.webp",
+                "32": "../assets/thumbs/Week32丨点赞.webp",
+                "33": "../assets/thumbs/Week33丨纯粹.webp",
+                "34": "../assets/thumbs/Week34丨浪费.webp",
+                "35": "../assets/thumbs/Week35丨倾听.webp",
+                "36": "../assets/thumbs/Week36丨咒语.webp",
+                "37": "../assets/thumbs/Week37丨忙碌.webp",
+                "38": "../assets/thumbs/Week38丨承认.webp",
+                "39": "../assets/thumbs/Week39丨暂停.webp",
+                "40": "../assets/thumbs/Week40_见光.webp",
+                "41": "../assets/thumbs/Week41_心亡.webp",
+                "42": "../assets/thumbs/Week42_如实.webp",
+                "43": "../assets/thumbs/Week43_陪伴.webp",
+                "44": "../assets/thumbs/Week44_乌云.webp",
+                "45": "../assets/thumbs/Week45_星轨.webp",
+            };
+            function guessTooltipImageCandidates(d, raw) {
+                const candidates = [];
+                const mapped = tooltipThumbByWeek[String(d.week)] || "";
+                if (mapped) candidates.push(mapped);
+                const rawImage = raw.imagePath || "";
+                if (rawImage && !candidates.includes(rawImage)) candidates.push(rawImage);
+                return candidates.filter(Boolean);
+            }
+            function handleTooltipCoverError(img) {
+                if (!img || !img.dataset) return;
+                const fallbacks = (img.dataset.fallbacks || "")
+                    .split("||")
+                    .filter(Boolean);
+                const next = fallbacks.shift();
+                if (!next) {
+                    img.onerror = null;
+                    return;
+                }
+                img.dataset.fallbacks = fallbacks.join("||");
+                img.src = next;
+            }
+            function getTooltipImageCandidates(d, raw) {
+                return guessTooltipImageCandidates(d, raw);
+            }
+            function encodeTooltipSrc(path) {
+                return path ? encodeURI(path) : "";
+            }
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
         <script>
@@ -2827,17 +2921,37 @@
                     .replace(/>/g, "&gt;")
                     .replace(/\"/g, "&quot;");
             }
+            function refreshActiveTooltip() {
+                const activeId = tipPinnedId || hId;
+                if (!activeId) return;
+                const d = nM.get(activeId);
+                if (!d) return;
+                tp.innerHTML = tHtml(d, { pinned: !!tipPinnedId });
+                setTooltipState(true, !!tipPinnedId);
+            }
             function tHtml(d, { pinned = false } = {}) {
                 const raw = originalContent[d.id] || {};
                 const title = d.title || raw.title || "";
                 const question = raw.question || d.question_essence || "";
                 const body = raw.body || d.content || "";
+                const imageCandidates = getTooltipImageCandidates(d, raw);
                 const summary =
                     summaryOverrides[d.id] ||
                     d.answer_essence ||
                     d.metaphor ||
                     "";
-                return `<div class="tooltip-head"><div><h2 style="color:${d.color}">${esc(title)}</h2><div class="week-num">Week ${d.week} · ${esc(d.cluster_label || "")} · ${esc(d.created_at || "")}</div></div>${pinned ? `<button type="button" class="tooltip-close" data-role="tooltip-close" aria-label="关闭">×</button>` : ""}</div>${question ? `<div class="question">Q: ${esc(question)}</div>` : ""}${body ? `<div class="body">${esc(body)}</div>` : ""}${summary ? `<div class="summary">${esc(summary)}</div>` : ""}`;
+                const [primaryImage = "", ...fallbackImages] = imageCandidates.map(
+                    encodeTooltipSrc,
+                );
+                const coverHtml = primaryImage
+                    ? `<div class="cover-wrap"><img class="cover" src="${esc(primaryImage)}" alt="${esc(title)}"${
+                          fallbackImages.length
+                              ? ` data-fallbacks="${esc(fallbackImages.join("||"))}" onerror="handleTooltipCoverError(this)"`
+                              : ""
+                      }></div>`
+                    : "";
+                const bodyClass = primaryImage ? "body has-cover" : "body";
+                return `<div class="tooltip-head"><div><h2 style="color:${d.color}">${esc(title)}</h2><div class="week-num">Week ${d.week} · ${esc(d.cluster_label || "")} · ${esc(d.created_at || "")}</div></div>${pinned ? `<button type="button" class="tooltip-close" data-role="tooltip-close" aria-label="关闭">×</button>` : ""}</div>${question ? `<div class="question">Q: ${esc(question)}</div>` : ""}${coverHtml}${body ? `<div class="${bodyClass}">${esc(body)}</div>` : ""}${summary ? `<div class="summary">${esc(summary)}</div>` : ""}`;
             }
             function mvTip(el, e) {
                 const g = 18,

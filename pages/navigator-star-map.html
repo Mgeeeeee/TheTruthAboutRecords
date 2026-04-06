@@ -661,10 +661,10 @@
                 />
             </div>
             <button type="button" class="ctrl-btn" id="pure-mode-btn">
-                纯净模式：关
+                纯净模式
             </button>
             <button type="button" class="ctrl-btn" id="global-mst-btn">
-                实验：全局MST：关
+                全局MST
             </button>
         </div>
         <div class="viewer" id="viewer"><svg id="graph"></svg></div>
@@ -3008,20 +3008,19 @@
 
             function renderPureMode() {
                 lg.style.display = P.pure ? "none" : "flex";
-                orbitTicks
-                    .select(".orbit-title")
-                    .attr("display", P.pure ? "none" : null);
+                orbitStaticL.attr("display", P.pure ? "none" : null);
+                orbitRotL.attr("display", P.pure ? "none" : null);
                 thL.attr("display", P.pure ? "none" : null);
                 const btn = document.getElementById("pure-mode-btn");
                 btn.classList.toggle("active", P.pure);
-                btn.textContent = `纯净模式：${P.pure ? "开" : "关"}`;
+                btn.textContent = "纯净模式";
                 rS();
             }
 
             function renderGlobalMSTMode() {
                 const btn = document.getElementById("global-mst-btn");
                 btn.classList.toggle("active", P.globalMST);
-                btn.textContent = `实验：全局MST：${P.globalMST ? "开" : "关"}`;
+                btn.textContent = "全局MST";
                 recomputeConstell();
             }
 

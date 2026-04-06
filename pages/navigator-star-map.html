@@ -161,6 +161,9 @@
                 width: min(440px, calc(100vw - 32px));
                 max-height: min(78vh, 860px);
                 overflow: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+                touch-action: pan-y;
                 padding: 16px 18px;
                 border-radius: 16px;
                 border: 1px solid rgba(255, 255, 255, 0.12);
@@ -3196,6 +3199,17 @@
                     closePinnedTooltip();
                 }
             });
+            ["pointerdown", "pointermove", "touchstart", "touchmove", "wheel"].forEach(
+                (eventName) => {
+                    tp.addEventListener(
+                        eventName,
+                        (e) => {
+                            e.stopPropagation();
+                        },
+                        { passive: true },
+                    );
+                },
+            );
             document.addEventListener("click", (e) => {
                 if (!(e.target instanceof Element)) return;
                 if (e.target.closest(".orbit-title")) return;

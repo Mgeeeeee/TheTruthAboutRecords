@@ -2947,14 +2947,23 @@
             requestAnimationFrame(anim);
 
             // Zoom
-            svg.call(
-                d3
-                    .zoom()
-                    .scaleExtent([0.3, 5])
-                    .on("start", () => vw.classList.add("is-panning"))
-                    .on("end", () => vw.classList.remove("is-panning"))
-                    .on("zoom", (e) => vp.attr("transform", e.transform)),
-            ).on("dblclick.zoom", null);
+            const zoomBehavior = d3
+                .zoom()
+                .filter((event) => {
+                    const touchUI =
+                        window.matchMedia instanceof Function &&
+                        (window.matchMedia("(max-width: 900px)").matches ||
+                            window.matchMedia("(pointer: coarse)").matches);
+                    if (touchUI && (tp.classList.contains("mobile-sheet") || tipPinnedId)) {
+                        return false;
+                    }
+                    return true;
+                })
+                .scaleExtent([0.3, 5])
+                .on("start", () => vw.classList.add("is-panning"))
+                .on("end", () => vw.classList.remove("is-panning"))
+                .on("zoom", (e) => vp.attr("transform", e.transform));
+            svg.call(zoomBehavior).on("dblclick.zoom", null);
 
             // Tooltip
             function esc(v) {
@@ -3080,6 +3089,25 @@
                 return adj.get(a)?.has(b) || false;
             }
 
+            const nodeDragBehavior = d3
+                .drag()
+                .filter(() => !isTouchUI())
+                .on("start", (e, d) => {
+                    e.sourceEvent.stopPropagation();
+                    if (!e.active) sim.alphaTarget(0.24).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                })
+                .on("drag", (e, d) => {
+                    d.fx = e.x;
+                    d.fy = e.y;
+                })
+                .on("end", (e, d) => {
+                    if (!e.active) sim.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                });
+
             function rS() {
                 const h = eH();
                 nd.each(function (d) {
@@ -3196,16 +3224,19 @@
             }
 
             nd.on("mouseenter", (e, d) => {
+                if (isTouchUI()) return;
                 if (tipPinnedId) return;
                 hId = d.id;
                 renderTooltip(d, e);
                 rS();
             })
                 .on("mousemove", (e) => {
+                    if (isTouchUI()) return;
                     if (tipPinnedId) return;
                     mvTip(tp, e);
                 })
                 .on("mouseleave", () => {
+                    if (isTouchUI()) return;
                     if (tipPinnedId) return;
                     hId = null;
                     setTooltipState(false, false);
@@ -3218,31 +3249,17 @@
                     rS();
                 });
             lkH.on("mouseenter", (e, d) => {
+                if (isTouchUI()) return;
                 lt.innerHTML = `<div class="link-type">${d.kind === "echo" ? "回声" : "共振"}</div><div>${d.reason || ""}</div>`;
                 lt.classList.add("visible");
                 mvTip(lt, e);
             })
-                .on("mousemove", (e) => mvTip(lt, e))
+                .on("mousemove", (e) => {
+                    if (isTouchUI()) return;
+                    mvTip(lt, e);
+                })
                 .on("mouseleave", () => lt.classList.remove("visible"));
-            nd.call(
-                d3
-                    .drag()
-                    .on("start", (e, d) => {
-                        e.sourceEvent.stopPropagation();
-                        if (!e.active) sim.alphaTarget(0.24).restart();
-                        d.fx = d.x;
-                        d.fy = d.y;
-                    })
-                    .on("drag", (e, d) => {
-                        d.fx = e.x;
-                        d.fy = e.y;
-                    })
-                    .on("end", (e, d) => {
-                        if (!e.active) sim.alphaTarget(0);
-                        d.fx = null;
-                        d.fy = null;
-                    }),
-            );
+            nd.call(nodeDragBehavior);
             tp.addEventListener("click", (e) => {
                 const closeBtn =
                     e.target instanceof Element
